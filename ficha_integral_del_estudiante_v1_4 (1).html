@@ -1,0 +1,3004 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ficha Integral del Estudiante - Versión 1.4</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            institucional: {
+              900: '#0f2544',
+              800: '#163560',
+              700: '#1e467d',
+              600: '#25589e',
+              50: '#f0f5fc',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Estilos base y accesibilidad */
+    html {
+      scroll-behavior: smooth;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Animación suave para despliegue de campos "Otro / Otra" */
+    .otro-wrapper {
+      transition: all 0.2s ease-in-out;
+    }
+
+    /* Estado de error en controles de formulario */
+    .field-invalid {
+      border-color: #dc2626 !important;
+      background-color: #fef2f2 !important;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+    }
+
+    /* Ocultar documento de impresión en vista de pantalla */
+    #print-document {
+      display: none;
+    }
+
+    /* Reglas estrictas de impresión optimizadas para hoja tamaño Carta (US Letter) */
+    @media print {
+      @page {
+        size: letter portrait;
+        margin: 11mm 12mm;
+      }
+
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 9.5pt !important;
+        line-height: 1.35 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* Ocultar interfaz interactiva y modales en impresión */
+      #app-screen,
+      .no-print {
+        display: none !important;
+      }
+
+      /* Mostrar formato institucional de impresión */
+      #print-document {
+        display: block !important;
+        width: 100% !important;
+      }
+
+      .print-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      .print-section-header {
+        background-color: #0f2544 !important;
+        color: #ffffff !important;
+        font-weight: 700;
+        font-size: 9pt;
+        padding: 4px 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .print-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-collapse: collapse;
+      }
+
+      .print-cell {
+        padding: 4px 8px;
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+      }
+
+      .print-cell:nth-child(2n) {
+        border-right: none;
+      }
+
+      .print-cell-full {
+        grid-column: span 2 / span 2;
+        border-right: none;
+      }
+
+      .print-label {
+        font-size: 7.5pt;
+        font-weight: 600;
+        color: #475569;
+        text-transform: uppercase;
+        display: block;
+      }
+
+      .print-value {
+        font-size: 9pt;
+        color: #0f172a;
+        font-weight: 500;
+        word-break: break-word;
+      }
+
+      .print-signatures {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-top: 22px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
+
+  <!-- ===================================================================== -->
+  <!-- INTERFAZ PRINCIPAL DE PANTALLA                                        -->
+  <!-- ===================================================================== -->
+  <div id="app-screen" class="min-h-screen flex flex-col">
+
+    <!-- Encabezado Institucional Fijo -->
+    <header class="sticky top-0 z-30 bg-institucional-900 text-white shadow-lg border-b border-institucional-700">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <!-- Identidad Institucional -->
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+              <svg class="w-6 h-6 text-blue-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Ficha Integral del Estudiante</h1>
+                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500/30 text-blue-100 border border-blue-400/30">v1.4</span>
+              </div>
+              <p class="text-xs text-slate-300">Registro Académico, Socioeconómico, Salud y Seguimiento de Plan de Grado</p>
+            </div>
+          </div>
+
+          <!-- Estado de Conexión y Folio -->
+          <div class="flex items-center justify-between sm:justify-end gap-2.5">
+            <div class="px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-xs font-mono text-blue-100" title="Folio único de registro">
+              Folio: <strong id="header-folio" class="text-white">FIE-2026-000000</strong>
+            </div>
+
+            <!-- Indicador de Red en Tiempo Real -->
+            <div id="network-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30" role="status" aria-live="polite">
+              <span id="network-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="network-text">En línea</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Progreso en Tiempo Real -->
+        <div class="mt-3 pt-2 border-t border-white/10">
+          <div class="flex items-center justify-between text-xs text-slate-300 mb-1">
+            <span>Progreso de diligenciamiento</span>
+            <span id="progress-label" class="font-semibold text-white">0% completado</span>
+          </div>
+          <div class="w-full h-2 bg-institucional-800 rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Banner de Respaldo Pendiente en localStorage (se muestra si hay registros sin enviar) -->
+    <div id="pending-backup-banner" class="hidden bg-amber-50 border-b border-amber-300 text-amber-950 px-4 py-3">
+      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-start sm:items-center gap-2.5">
+          <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5 sm:mt-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p class="text-xs sm:text-sm">
+            Existe un registro pendiente de envío guardado localmente (<strong id="pending-folio-label"></strong>).
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" id="btn-retry-banner" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-sm transition">
+            Reenviar a Google Sheets
+          </button>
+          <button type="button" id="btn-dismiss-banner" class="px-2.5 py-1.5 rounded-lg bg-amber-200/70 hover:bg-amber-200 text-amber-900 text-xs font-medium transition">
+            Ocultar aviso
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navegación Rápida por Secciones -->
+    <nav aria-label="Navegación de secciones" class="bg-white border-b border-slate-200 shadow-sm">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 overflow-x-auto">
+        <div class="flex items-center gap-2 min-w-max">
+          <a href="#sec-1" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-institucional-50 hover:text-institucional-800 text-slate-700 transition">1. Datos Personales</a>
+          <a href="#sec-2" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-institucional-50 hover:text-institucional-800 text-slate-700 transition">2. Académico y Plan de Grado</a>
+          <a href="#sec-3" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-institucional-50 hover:text-institucional-800 text-slate-700 transition">3. Contacto Familiar</a>
+          <a href="#sec-4" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-institucional-50 hover:text-institucional-800 text-slate-700 transition">4. Socioeconómico y Vivienda</a>
+          <a href="#sec-5" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-institucional-50 hover:text-institucional-800 text-slate-700 transition">5. Salud Integral</a>
+          <a href="#sec-6" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-institucional-50 hover:text-institucional-800 text-slate-700 transition">6. Habilidades y Deporte</a>
+          <a href="#sec-7" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-institucional-50 hover:text-institucional-800 text-slate-700 transition">7. Afiliación Religiosa</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Contenido Principal del Formulario -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+      <!-- Alerta Global de Errores de Validación -->
+      <div id="validation-summary" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-300 text-red-900 shadow-sm" role="alert">
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="flex-1">
+            <h2 class="text-sm font-bold text-red-800">Por favor revise los campos marcados antes de continuar</h2>
+            <p id="validation-summary-text" class="text-xs sm:text-sm text-red-700 mt-1">Se encontraron campos obligatorios incompletos o respuestas "Otro/Otra" sin especificar.</p>
+          </div>
+        </div>
+      </div>
+
+      <form id="ficha-form" novalidate class="space-y-8">
+
+        <!-- =============================================================== -->
+        <!-- SECCIÓN 1: DATOS PERSONALES E IDENTIFICACIÓN                      -->
+        <!-- =============================================================== -->
+        <section id="sec-1" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden scroll-mt-28">
+          <div class="bg-institucional-900 text-white px-5 py-4 flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-white/15 font-bold text-sm flex items-center justify-center shrink-0">1</span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold">Datos Personales e Identificación</h2>
+              <p class="text-xs text-slate-300">Información general de identidad, ubicación y contacto del estudiante</p>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Nombres -->
+            <div>
+              <label for="nombres" class="block text-sm font-semibold text-slate-700 mb-1.5">Nombres <span class="text-red-600">*</span></label>
+              <input type="text" id="nombres" name="nombres" required autocomplete="given-name" placeholder="Ej. Juan Carlos"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Apellidos -->
+            <div>
+              <label for="apellidos" class="block text-sm font-semibold text-slate-700 mb-1.5">Apellidos <span class="text-red-600">*</span></label>
+              <input type="text" id="apellidos" name="apellidos" required autocomplete="family-name" placeholder="Ej. Pérez Martínez"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Carnet / NIE -->
+            <div>
+              <label for="carnet_nie" class="block text-sm font-semibold text-slate-700 mb-1.5">Carnet / NIE <span class="text-red-600">*</span></label>
+              <input type="text" id="carnet_nie" name="carnet_nie" required placeholder="Ej. PM202601 o 12345678"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm uppercase focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- DUI -->
+            <div>
+              <label for="dui" class="block text-sm font-semibold text-slate-700 mb-1.5">DUI <span class="text-xs font-normal text-slate-500">(Opcional si es menor de edad)</span></label>
+              <input type="text" id="dui" name="dui" maxlength="10" inputmode="numeric" placeholder="00000000-0"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Fecha de nacimiento y Edad automática -->
+            <div>
+              <label for="fecha_nacimiento" class="block text-sm font-semibold text-slate-700 mb-1.5">Fecha de nacimiento <span class="text-red-600">*</span></label>
+              <div class="flex items-center gap-2">
+                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required
+                  class="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                <div class="px-3 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 whitespace-nowrap" title="Edad calculada automáticamente">
+                  Edad: <span id="edad_display" class="text-institucional-800 font-bold">--</span> años
+                </div>
+              </div>
+              <input type="hidden" id="edad" name="edad" value="" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Sexo biológico (Únicamente Hombre / Mujer) -->
+            <div>
+              <span class="block text-sm font-semibold text-slate-700 mb-1">Sexo <span class="text-red-600">*</span></span>
+              <span class="block text-xs text-slate-500 mb-2">Variable biológica: Hombre / Mujer</span>
+              <div id="sexo-group" class="grid grid-cols-2 gap-2.5">
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-300 cursor-pointer hover:bg-slate-50 transition">
+                  <input type="radio" name="sexo" value="Hombre" required class="w-4 h-4 text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm font-medium text-slate-800">Hombre</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-300 cursor-pointer hover:bg-slate-50 transition">
+                  <input type="radio" name="sexo" value="Mujer" required class="w-4 h-4 text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm font-medium text-slate-800">Mujer</span>
+                </label>
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Estado civil + Otro -->
+            <div data-otro-group="estado_civil">
+              <label for="estado_civil" class="block text-sm font-semibold text-slate-700 mb-1.5">Estado civil <span class="text-red-600">*</span></label>
+              <select id="estado_civil" name="estado_civil" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione una opción...</option>
+                <option value="Soltero/a">Soltero/a</option>
+                <option value="Casado/a">Casado/a</option>
+                <option value="Acompañado/a">Acompañado/a</option>
+                <option value="Divorciado/a">Divorciado/a</option>
+                <option value="Viudo/a">Viudo/a</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="estado_civil_otro" name="estado_civil_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Teléfono -->
+            <div>
+              <label for="telefono" class="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono personal <span class="text-red-600">*</span></label>
+              <input type="tel" id="telefono" name="telefono" required inputmode="tel" maxlength="9" placeholder="Ej. 7000-0000"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Correo electrónico -->
+            <div>
+              <label for="correo" class="block text-sm font-semibold text-slate-700 mb-1.5">Correo electrónico <span class="text-red-600">*</span></label>
+              <input type="email" id="correo" name="correo" required autocomplete="email" placeholder="estudiante@institucion.edu.sv"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Departamento -->
+            <div>
+              <label for="departamento" class="block text-sm font-semibold text-slate-700 mb-1.5">Departamento <span class="text-red-600">*</span></label>
+              <select id="departamento" name="departamento" required
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione departamento...</option>
+                <option value="Ahuachapán">Ahuachapán</option>
+                <option value="Cabañas">Cabañas</option>
+                <option value="Chalatenango">Chalatenango</option>
+                <option value="Cuscatlán">Cuscatlán</option>
+                <option value="La Libertad">La Libertad</option>
+                <option value="La Paz">La Paz</option>
+                <option value="La Unión">La Unión</option>
+                <option value="Morazán">Morazán</option>
+                <option value="San Miguel">San Miguel</option>
+                <option value="San Salvador">San Salvador</option>
+                <option value="San Vicente">San Vicente</option>
+                <option value="Santa Ana">Santa Ana</option>
+                <option value="Sonsonate">Sonsonate</option>
+                <option value="Usulután">Usulután</option>
+              </select>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Municipio -->
+            <div>
+              <label for="municipio" class="block text-sm font-semibold text-slate-700 mb-1.5">Municipio / Distrito <span class="text-red-600">*</span></label>
+              <input type="text" id="municipio" name="municipio" required list="municipios-sv" placeholder="Ej. Usulután, San Miguel, San Salvador..."
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <datalist id="municipios-sv">
+                <option value="Usulután"></option>
+                <option value="Santiago de María"></option>
+                <option value="Jiquilisco"></option>
+                <option value="Berlín"></option>
+                <option value="Santa Elena"></option>
+                <option value="San Miguel"></option>
+                <option value="San Salvador"></option>
+                <option value="Santa Tecla"></option>
+                <option value="Soyapango"></option>
+                <option value="Santa Ana"></option>
+                <option value="Sonsonate"></option>
+                <option value="Zacatecoluca"></option>
+                <option value="San Vicente"></option>
+                <option value="Cojutepeque"></option>
+                <option value="Chalatenango"></option>
+                <option value="Sensuntepeque"></option>
+                <option value="San Francisco Gotera"></option>
+                <option value="La Unión"></option>
+                <option value="Ahuachapán"></option>
+              </datalist>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Zona de residencia + Otra -->
+            <div data-otro-group="zona_residencia">
+              <label for="zona_residencia" class="block text-sm font-semibold text-slate-700 mb-1.5">Zona de residencia <span class="text-red-600">*</span></label>
+              <select id="zona_residencia" name="zona_residencia" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione zona...</option>
+                <option value="Urbana">Urbana</option>
+                <option value="Rural">Rural</option>
+                <option value="Periurbana">Periurbana</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="zona_residencia_otro" name="zona_residencia_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Dirección completa -->
+            <div class="md:col-span-2 lg:col-span-3">
+              <label for="direccion" class="block text-sm font-semibold text-slate-700 mb-1.5">Dirección de residencia <span class="text-red-600">*</span></label>
+              <input type="text" id="direccion" name="direccion" required autocomplete="street-address" placeholder="Colonia, barrio, cantón, calle, pasaje y número de casa"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- SECCIÓN 2: DATOS ACADÉMICOS Y PLAN DE GRADO                     -->
+        <!-- =============================================================== -->
+        <section id="sec-2" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden scroll-mt-28">
+          <div class="bg-institucional-900 text-white px-5 py-4 flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-white/15 font-bold text-sm flex items-center justify-center shrink-0">2</span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold">Datos Académicos y Plan de Grado</h2>
+              <p class="text-xs text-slate-300">Información curricular, estado de matrícula y proyección de trabajo de graduación</p>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Carrera / Especialidad + Otro -->
+            <div data-otro-group="carrera">
+              <label for="carrera" class="block text-sm font-semibold text-slate-700 mb-1.5">Carrera / Especialidad <span class="text-red-600">*</span></label>
+              <select id="carrera" name="carrera" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione carrera o especialidad...</option>
+                <option value="Licenciatura en Ciencias de la Educación">Licenciatura en Ciencias de la Educación</option>
+                <option value="Licenciatura en Administración de Empresas">Licenciatura en Administración de Empresas</option>
+                <option value="Licenciatura en Contaduría Pública">Licenciatura en Contaduría Pública</option>
+                <option value="Licenciatura en Enfermería">Licenciatura en Enfermería</option>
+                <option value="Ingeniería en Sistemas y Computación">Ingeniería en Sistemas y Computación</option>
+                <option value="Ingeniería Industrial">Ingeniería Industrial</option>
+                <option value="Ingeniería Agronómica">Ingeniería Agronómica</option>
+                <option value="Licenciatura en Ciencias Jurídicas">Licenciatura en Ciencias Jurídicas</option>
+                <option value="Técnico en Desarrollo de Software">Técnico en Desarrollo de Software</option>
+                <option value="Bachillerato General / Técnico">Bachillerato General / Técnico</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="carrera_otro" name="carrera_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Año / Ciclo académico + Otro -->
+            <div data-otro-group="anio_ciclo">
+              <label for="anio_ciclo" class="block text-sm font-semibold text-slate-700 mb-1.5">Año / Ciclo académico <span class="text-red-600">*</span></label>
+              <select id="anio_ciclo" name="anio_ciclo" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione año o ciclo...</option>
+                <option value="Primer Año (Ciclo I - II)">Primer Año (Ciclo I - II)</option>
+                <option value="Segundo Año (Ciclo III - IV)">Segundo Año (Ciclo III - IV)</option>
+                <option value="Tercer Año (Ciclo V - VI)">Tercer Año (Ciclo V - VI)</option>
+                <option value="Cuarto Año (Ciclo VII - VIII)">Cuarto Año (Ciclo VII - VIII)</option>
+                <option value="Quinto Año (Ciclo IX - X)">Quinto Año (Ciclo IX - X)</option>
+                <option value="Egresado / Proceso de Graduación">Egresado / Proceso de Graduación</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="anio_ciclo_otro" name="anio_ciclo_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Turno / Jornada + Otro -->
+            <div data-otro-group="turno_jornada">
+              <label for="turno_jornada" class="block text-sm font-semibold text-slate-700 mb-1.5">Turno / Jornada <span class="text-red-600">*</span></label>
+              <select id="turno_jornada" name="turno_jornada" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione turno o jornada...</option>
+                <option value="Matutino">Matutino</option>
+                <option value="Vespertino">Vespertino</option>
+                <option value="Nocturno">Nocturno</option>
+                <option value="Fin de semana / Sabatino">Fin de semana / Sabatino</option>
+                <option value="Semipresencial / Virtual">Semipresencial / Virtual</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="turno_jornada_otro" name="turno_jornada_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Condición académica + Otra -->
+            <div data-otro-group="condicion_academica">
+              <label for="condicion_academica" class="block text-sm font-semibold text-slate-700 mb-1.5">Condición académica <span class="text-red-600">*</span></label>
+              <select id="condicion_academica" name="condicion_academica" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione condición...</option>
+                <option value="Estudiante regular activo">Estudiante regular activo</option>
+                <option value="Nuevo ingreso">Nuevo ingreso</option>
+                <option value="Reingreso">Reingreso</option>
+                <option value="Equivalencias / Traslado">Equivalencias / Traslado</option>
+                <option value="Egresado en Plan de Grado">Egresado en Plan de Grado</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="condicion_academica_otro" name="condicion_academica_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Modalidad / Opción de Plan de Grado + Otra -->
+            <div data-otro-group="modalidad_plan_grado">
+              <label for="modalidad_plan_grado" class="block text-sm font-semibold text-slate-700 mb-1.5">Modalidad / Opción de Plan de Grado <span class="text-red-600">*</span></label>
+              <select id="modalidad_plan_grado" name="modalidad_plan_grado" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione modalidad...</option>
+                <option value="Trabajo de Investigación / Tesis">Trabajo de Investigación / Tesis</option>
+                <option value="Seminario de Especialización">Seminario de Especialización</option>
+                <option value="Proyecto Aplicado / Desarrollo Tecnológico">Proyecto Aplicado / Desarrollo Tecnológico</option>
+                <option value="Pasantía / Práctica Profesional Supervisada">Pasantía / Práctica Profesional Supervisada</option>
+                <option value="Curso de Pre-especialización / Maestría">Curso de Pre-especialización / Maestría</option>
+                <option value="Aún no definida (en orientación)">Aún no definida (en orientación)</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="modalidad_plan_grado_otro" name="modalidad_plan_grado_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Principal apoyo requerido para culminar el Plan de Grado + Otro -->
+            <div data-otro-group="apoyo_plan_grado">
+              <label for="apoyo_plan_grado" class="block text-sm font-semibold text-slate-700 mb-1.5">Principal apoyo requerido para culminar el Plan de Grado <span class="text-red-600">*</span></label>
+              <select id="apoyo_plan_grado" name="apoyo_plan_grado" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione principal apoyo...</option>
+                <option value="Asesoría metodológica y redacción">Asesoría metodológica y redacción</option>
+                <option value="Asesoría técnica / temática especializada">Asesoría técnica / temática especializada</option>
+                <option value="Acceso a equipo informático e internet">Acceso a equipo informático e internet</option>
+                <option value="Acceso a bibliografía y bases de datos">Acceso a bibliografía y bases de datos</option>
+                <option value="Apoyo económico / Beca de graduación">Apoyo económico / Beca de graduación</option>
+                <option value="Gestión de tiempo / Flexibilidad laboral">Gestión de tiempo / Flexibilidad laboral</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="apoyo_plan_grado_otro" name="apoyo_plan_grado_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Tema preliminar o área de interés del Plan de Grado -->
+            <div class="md:col-span-2 lg:col-span-3">
+              <label for="tema_plan_grado" class="block text-sm font-semibold text-slate-700 mb-1.5">Tema preliminar o área de interés del Plan de Grado</label>
+              <textarea id="tema_plan_grado" name="tema_plan_grado" rows="2" placeholder="Describa brevemente la línea de investigación, problemática o proyecto de interés para su Plan de Grado..."
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- SECCIÓN 3: CONTACTO FAMILIAR Y DE EMERGENCIA                    -->
+        <!-- =============================================================== -->
+        <section id="sec-3" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden scroll-mt-28">
+          <div class="bg-institucional-900 text-white px-5 py-4 flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-white/15 font-bold text-sm flex items-center justify-center shrink-0">3</span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold">Contacto Familiar y de Emergencia</h2>
+              <p class="text-xs text-slate-300">Referencia inmediata en caso de emergencia y composición del núcleo de convivencia</p>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Nombre del contacto de emergencia -->
+            <div>
+              <label for="contacto_emergencia_nombre" class="block text-sm font-semibold text-slate-700 mb-1.5">Nombre del contacto de emergencia <span class="text-red-600">*</span></label>
+              <input type="text" id="contacto_emergencia_nombre" name="contacto_emergencia_nombre" required placeholder="Nombre completo del familiar o responsable"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Parentesco + Otro -->
+            <div data-otro-group="contacto_emergencia_parentesco">
+              <label for="contacto_emergencia_parentesco" class="block text-sm font-semibold text-slate-700 mb-1.5">Parentesco <span class="text-red-600">*</span></label>
+              <select id="contacto_emergencia_parentesco" name="contacto_emergencia_parentesco" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione parentesco...</option>
+                <option value="Madre">Madre</option>
+                <option value="Padre">Padre</option>
+                <option value="Hermano/a">Hermano/a</option>
+                <option value="Cónyuge / Pareja">Cónyuge / Pareja</option>
+                <option value="Tío/a">Tío/a</option>
+                <option value="Abuelo/a">Abuelo/a</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="contacto_emergencia_parentesco_otro" name="contacto_emergencia_parentesco_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Teléfono de emergencia -->
+            <div>
+              <label for="contacto_emergencia_telefono" class="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono de emergencia <span class="text-red-600">*</span></label>
+              <input type="tel" id="contacto_emergencia_telefono" name="contacto_emergencia_telefono" required inputmode="tel" maxlength="9" placeholder="Ej. 7000-0000"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- ¿Con quién vive actualmente? + Otro -->
+            <div class="md:col-span-2" data-otro-group="con_quien_vive">
+              <label for="con_quien_vive" class="block text-sm font-semibold text-slate-700 mb-1.5">¿Con quién vive actualmente? <span class="text-red-600">*</span></label>
+              <select id="con_quien_vive" name="con_quien_vive" required data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione opción de convivencia...</option>
+                <option value="Ambos padres">Ambos padres</option>
+                <option value="Solo con la madre">Solo con la madre</option>
+                <option value="Solo con el padre">Solo con el padre</option>
+                <option value="Con cónyuge / pareja e hijos">Con cónyuge / pareja e hijos</option>
+                <option value="Con otros familiares (abuelos, tíos, hermanos)">Con otros familiares (abuelos, tíos, hermanos)</option>
+                <option value="Solo/a">Solo/a</option>
+                <option value="Pupilaje / Vivienda compartida con estudiantes">Pupilaje / Vivienda compartida con estudiantes</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="con_quien_vive_otro" name="con_quien_vive_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Personas dependientes económicamente -->
+            <div>
+              <label for="personas_dependientes" class="block text-sm font-semibold text-slate-700 mb-1.5">Personas dependientes económicamente</label>
+              <input type="number" id="personas_dependientes" name="personas_dependientes" min="0" max="30" value="0"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              <p class="text-xs text-slate-500 mt-1">Número de personas que dependen directamente del estudiante.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- SECCIÓN 4: CONDICIONES SOCIOECONÓMICAS, VIVIENDA Y SERVICIOS    -->
+        <!-- =============================================================== -->
+        <section id="sec-4" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden scroll-mt-28">
+          <div class="bg-institucional-900 text-white px-5 py-4 flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-white/15 font-bold text-sm flex items-center justify-center shrink-0">4</span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold">Condiciones Socioeconómicas, Vivienda y Servicios Básicos - Plan de Grado</h2>
+              <p class="text-xs text-slate-300">Infraestructura habitacional, conectividad digital, ingresos y movilidad académica</p>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 space-y-6">
+            <!-- Subbloque A: Vivienda e Índice de Hacinamiento -->
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-institucional-800 border-b border-slate-200 pb-2 mb-4">4.1 Características de la Vivienda y Hacinamiento</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Tipo de vivienda + Otro -->
+                <div data-otro-group="tipo_vivienda">
+                  <label for="tipo_vivienda" class="block text-sm font-semibold text-slate-700 mb-1.5">Tipo de vivienda <span class="text-red-600">*</span></label>
+                  <select id="tipo_vivienda" name="tipo_vivienda" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione tipo...</option>
+                    <option value="Casa independiente">Casa independiente</option>
+                    <option value="Apartamento">Apartamento</option>
+                    <option value="Mesón / Cuartería">Mesón / Cuartería</option>
+                    <option value="Vivienda improvisada / Rancho">Vivienda improvisada / Rancho</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="tipo_vivienda_otro" name="tipo_vivienda_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Tenencia de vivienda + Otra -->
+                <div data-otro-group="tenencia_vivienda">
+                  <label for="tenencia_vivienda" class="block text-sm font-semibold text-slate-700 mb-1.5">Tenencia de vivienda <span class="text-red-600">*</span></label>
+                  <select id="tenencia_vivienda" name="tenencia_vivienda" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione tenencia...</option>
+                    <option value="Propia totalmente pagada">Propia totalmente pagada</option>
+                    <option value="Propia pagándose a plazos">Propia pagándose a plazos</option>
+                    <option value="Alquilada">Alquilada</option>
+                    <option value="Prestada / Cedida por familiar">Prestada / Cedida por familiar</option>
+                    <option value="Otra">Otra</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="tenencia_vivienda_otro" name="tenencia_vivienda_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Material predominante de paredes + Otro -->
+                <div data-otro-group="material_paredes">
+                  <label for="material_paredes" class="block text-sm font-semibold text-slate-700 mb-1.5">Material predominante de paredes <span class="text-red-600">*</span></label>
+                  <select id="material_paredes" name="material_paredes" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione material...</option>
+                    <option value="Bloque de concreto / Ladrillo">Bloque de concreto / Ladrillo</option>
+                    <option value="Sistema mixto">Sistema mixto</option>
+                    <option value="Adobe">Adobe</option>
+                    <option value="Bahareque">Bahareque</option>
+                    <option value="Madera">Madera</option>
+                    <option value="Lámina">Lámina</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="material_paredes_otro" name="material_paredes_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Material de techo + Otro -->
+                <div data-otro-group="material_techo">
+                  <label for="material_techo" class="block text-sm font-semibold text-slate-700 mb-1.5">Material de techo <span class="text-red-600">*</span></label>
+                  <select id="material_techo" name="material_techo" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione material...</option>
+                    <option value="Lámina galvanizada / Zinc">Lámina galvanizada / Zinc</option>
+                    <option value="Lámina de fibrocemento (Duralita)">Lámina de fibrocemento (Duralita)</option>
+                    <option value="Teja de barro">Teja de barro</option>
+                    <option value="Losa de concreto">Losa de concreto</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="material_techo_otro" name="material_techo_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Material de piso + Otro -->
+                <div data-otro-group="material_piso">
+                  <label for="material_piso" class="block text-sm font-semibold text-slate-700 mb-1.5">Material de piso <span class="text-red-600">*</span></label>
+                  <select id="material_piso" name="material_piso" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione material...</option>
+                    <option value="Cerámica / Porcelanato">Cerámica / Porcelanato</option>
+                    <option value="Ladrillo de cemento">Ladrillo de cemento</option>
+                    <option value="Cemento pulido / Encementado">Cemento pulido / Encementado</option>
+                    <option value="Tierra">Tierra</option>
+                    <option value="Madera">Madera</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="material_piso_otro" name="material_piso_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Total habitantes y Número de dormitorios + Cálculo automático sin división por cero -->
+                <div class="md:col-span-2 lg:col-span-1 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label for="total_habitantes" class="block text-xs font-semibold text-slate-700 mb-1">Habitantes vivienda <span class="text-red-600">*</span></label>
+                      <input type="number" id="total_habitantes" name="total_habitantes" required min="1" max="50" placeholder="Ej. 4"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-institucional-600 outline-none" />
+                    </div>
+                    <div>
+                      <label for="numero_dormitorios" class="block text-xs font-semibold text-slate-700 mb-1">N.º dormitorios <span class="text-red-600">*</span></label>
+                      <input type="number" id="numero_dormitorios" name="numero_dormitorios" required min="0" max="30" placeholder="Ej. 2"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-institucional-600 outline-none" />
+                    </div>
+                  </div>
+                  <div class="mt-2.5 pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                    <span class="text-xs text-slate-600">Hacinamiento: <strong id="hacinamiento_valor" class="text-slate-900">--</strong></span>
+                    <span id="hacinamiento_badge" class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200 text-slate-700">Pendiente</span>
+                  </div>
+                  <input type="hidden" id="indice_hacinamiento" name="indice_hacinamiento" value="" />
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subbloque B: Servicios Básicos y Conectividad -->
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-institucional-800 border-b border-slate-200 pb-2 mb-4">4.2 Servicios Básicos y Acceso Tecnológico</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Servicio de agua potable + Otro -->
+                <div data-otro-group="agua_potable">
+                  <label for="agua_potable" class="block text-sm font-semibold text-slate-700 mb-1.5">Servicio de agua potable <span class="text-red-600">*</span></label>
+                  <select id="agua_potable" name="agua_potable" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione servicio...</option>
+                    <option value="Cañería domiciliar (ANDA / Alcaldía / Junta)">Cañería domiciliar (ANDA / Alcaldía / Junta)</option>
+                    <option value="Pozo propio o comunitario">Pozo propio o comunitario</option>
+                    <option value="Pila pública / Chorro comunitario">Pila pública / Chorro comunitario</option>
+                    <option value="Compra de agua embotellada / pipa">Compra de agua embotellada / pipa</option>
+                    <option value="Río / Nacimiento / Quebrada">Río / Nacimiento / Quebrada</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="agua_potable_otro" name="agua_potable_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Frecuencia del agua + Otra -->
+                <div data-otro-group="frecuencia_agua">
+                  <label for="frecuencia_agua" class="block text-sm font-semibold text-slate-700 mb-1.5">Frecuencia del agua <span class="text-red-600">*</span></label>
+                  <select id="frecuencia_agua" name="frecuencia_agua" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione frecuencia...</option>
+                    <option value="Todos los días (24 horas)">Todos los días (24 horas)</option>
+                    <option value="Todos los días (por horas)">Todos los días (por horas)</option>
+                    <option value="Cada 2 a 3 días">Cada 2 a 3 días</option>
+                    <option value="Una vez por semana">Una vez por semana</option>
+                    <option value="Irregular / Escaso">Irregular / Escaso</option>
+                    <option value="Otra">Otra</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="frecuencia_agua_otro" name="frecuencia_agua_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Energía eléctrica + Otro -->
+                <div data-otro-group="energia_electrica">
+                  <label for="energia_electrica" class="block text-sm font-semibold text-slate-700 mb-1.5">Energía eléctrica <span class="text-red-600">*</span></label>
+                  <select id="energia_electrica" name="energia_electrica" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione servicio...</option>
+                    <option value="Conexión domiciliar propia">Conexión domiciliar propia</option>
+                    <option value="Conexión compartida con vecino/familiar">Conexión compartida con vecino/familiar</option>
+                    <option value="Panel solar">Panel solar</option>
+                    <option value="Sin servicio de energía eléctrica">Sin servicio de energía eléctrica</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="energia_electrica_otro" name="energia_electrica_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Servicio sanitario + Otro -->
+                <div data-otro-group="servicio_sanitario">
+                  <label for="servicio_sanitario" class="block text-sm font-semibold text-slate-700 mb-1.5">Servicio sanitario <span class="text-red-600">*</span></label>
+                  <select id="servicio_sanitario" name="servicio_sanitario" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione servicio...</option>
+                    <option value="Inodoro conectado a alcantarillado">Inodoro conectado a alcantarillado</option>
+                    <option value="Inodoro con fosa séptica">Inodoro con fosa séptica</option>
+                    <option value="Letrina abonera / seca">Letrina abonera / seca</option>
+                    <option value="Letrina de hoyo">Letrina de hoyo</option>
+                    <option value="No posee servicio sanitario">No posee servicio sanitario</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="servicio_sanitario_otro" name="servicio_sanitario_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Acceso a internet en el hogar + Otro -->
+                <div data-otro-group="acceso_internet">
+                  <label for="acceso_internet" class="block text-sm font-semibold text-slate-700 mb-1.5">Acceso a internet en el hogar <span class="text-red-600">*</span></label>
+                  <select id="acceso_internet" name="acceso_internet" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione acceso...</option>
+                    <option value="Internet residencial fijo (Fibra / Cable)">Internet residencial fijo (Fibra / Cable)</option>
+                    <option value="Internet móvil (Datos celulares)">Internet móvil (Datos celulares)</option>
+                    <option value="Internet inalámbrico / Satelital">Internet inalámbrico / Satelital</option>
+                    <option value="Sin acceso en el hogar (usa ciber / institución)">Sin acceso en el hogar (usa ciber / institución)</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="acceso_internet_otro" name="acceso_internet_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Calidad de conexión + Otra -->
+                <div data-otro-group="calidad_conexion">
+                  <label for="calidad_conexion" class="block text-sm font-semibold text-slate-700 mb-1.5">Calidad de conexión <span class="text-red-600">*</span></label>
+                  <select id="calidad_conexion" name="calidad_conexion" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione calidad...</option>
+                    <option value="Excelente (estable para videollamadas y descargas)">Excelente (estable para videollamadas y descargas)</option>
+                    <option value="Buena (estable con interrupciones ocasionales)">Buena (estable con interrupciones ocasionales)</option>
+                    <option value="Regular (lenta en horas pico)">Regular (lenta en horas pico)</option>
+                    <option value="Deficiente / Muy inestable">Deficiente / Muy inestable</option>
+                    <option value="No aplica / Sin conexión">No aplica / Sin conexión</option>
+                    <option value="Otra">Otra</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="calidad_conexion_otro" name="calidad_conexion_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Dispositivos tecnológicos disponibles (Checkboxes con exclusión mutua "Ninguno") -->
+                <div class="md:col-span-2 lg:col-span-3" data-otro-group="dispositivos" data-checkbox-group="dispositivos">
+                  <span class="block text-sm font-semibold text-slate-700 mb-2">Dispositivos tecnológicos disponibles en el hogar <span class="text-xs font-normal text-slate-500">(Puede marcar varios)</span></span>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                      <input type="checkbox" name="dispositivos" value="Computadora de escritorio" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                      <span class="text-sm text-slate-700">Computadora de escritorio</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                      <input type="checkbox" name="dispositivos" value="Laptop / Portátil" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                      <span class="text-sm text-slate-700">Laptop / Portátil</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                      <input type="checkbox" name="dispositivos" value="Tablet" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                      <span class="text-sm text-slate-700">Tablet</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                      <input type="checkbox" name="dispositivos" value="Teléfono inteligente (Smartphone)" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                      <span class="text-sm text-slate-700">Teléfono inteligente (Smartphone)</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                      <input type="checkbox" name="dispositivos" value="Otro" data-is-otro="true" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                      <span class="text-sm text-slate-700">Otro</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 cursor-pointer transition">
+                      <input type="checkbox" name="dispositivos" value="Ninguno" data-is-ninguno="true" class="w-4 h-4 rounded text-slate-700 focus:ring-slate-500" />
+                      <span class="text-sm font-medium text-slate-700">Ninguno</span>
+                    </label>
+                  </div>
+                  <div class="otro-wrapper hidden mt-2.5 max-w-md">
+                    <input type="text" id="dispositivos_otro" name="dispositivos_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subbloque C: Situación Económica y Movilidad -->
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-institucional-800 border-b border-slate-200 pb-2 mb-4">4.3 Situación Económica y Transporte</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Situación laboral + Otra -->
+                <div data-otro-group="situacion_laboral">
+                  <label for="situacion_laboral" class="block text-sm font-semibold text-slate-700 mb-1.5">Situación laboral <span class="text-red-600">*</span></label>
+                  <select id="situacion_laboral" name="situacion_laboral" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione situación...</option>
+                    <option value="No trabaja (dedicado exclusivamente al estudio)">No trabaja (dedicado exclusivamente al estudio)</option>
+                    <option value="Empleado a tiempo completo">Empleado a tiempo completo</option>
+                    <option value="Empleado a medio tiempo">Empleado a medio tiempo</option>
+                    <option value="Trabajo independiente / Emprendimiento">Trabajo independiente / Emprendimiento</option>
+                    <option value="Trabajo temporal / informal">Trabajo temporal / informal</option>
+                    <option value="Otra">Otra</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="situacion_laboral_otro" name="situacion_laboral_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Principal sostén económico + Otro -->
+                <div data-otro-group="sosten_economico">
+                  <label for="sosten_economico" class="block text-sm font-semibold text-slate-700 mb-1.5">Principal sostén económico <span class="text-red-600">*</span></label>
+                  <select id="sosten_economico" name="sosten_economico" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione sostén...</option>
+                    <option value="Padre y/o Madre">Padre y/o Madre</option>
+                    <option value="El mismo estudiante">El mismo estudiante</option>
+                    <option value="Cónyuge / Pareja">Cónyuge / Pareja</option>
+                    <option value="Hermanos u otros familiares">Hermanos u otros familiares</option>
+                    <option value="Beca / Ayuda institucional">Beca / Ayuda institucional</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="sosten_economico_otro" name="sosten_economico_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Ingreso familiar mensual estimado + Otro -->
+                <div data-otro-group="ingreso_familiar">
+                  <label for="ingreso_familiar" class="block text-sm font-semibold text-slate-700 mb-1.5">Ingreso familiar mensual estimado <span class="text-red-600">*</span></label>
+                  <select id="ingreso_familiar" name="ingreso_familiar" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione rango...</option>
+                    <option value="Menos de $365.00 (menos de 1 salario mínimo)">Menos de $365.00 (menos de 1 salario mínimo)</option>
+                    <option value="Entre $365.00 y $600.00">Entre $365.00 y $600.00</option>
+                    <option value="Entre $601.00 y $1,000.00">Entre $601.00 y $1,000.00</option>
+                    <option value="Entre $1,001.00 y $1,500.00">Entre $1,001.00 y $1,500.00</option>
+                    <option value="Más de $1,500.00">Más de $1,500.00</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="ingreso_familiar_otro" name="ingreso_familiar_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Medio de transporte hacia la institución + Otro -->
+                <div class="md:col-span-2" data-otro-group="medio_transporte">
+                  <label for="medio_transporte" class="block text-sm font-semibold text-slate-700 mb-1.5">Medio de transporte hacia la institución <span class="text-red-600">*</span></label>
+                  <select id="medio_transporte" name="medio_transporte" required data-has-otro="true"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                    <option value="">Seleccione medio de transporte...</option>
+                    <option value="Transporte público (Bus / Microbús)">Transporte público (Bus / Microbús)</option>
+                    <option value="Vehículo propio / familiar">Vehículo propio / familiar</option>
+                    <option value="Motocicleta">Motocicleta</option>
+                    <option value="A pie / Caminando">A pie / Caminando</option>
+                    <option value="Transporte compartido / Ride">Transporte compartido / Ride</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                  <div class="otro-wrapper hidden mt-2">
+                    <input type="text" id="medio_transporte_otro" name="medio_transporte_otro" placeholder="Especifique cuál..."
+                      class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                  </div>
+                  <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+                </div>
+
+                <!-- Tiempo estimado de traslado en minutos -->
+                <div>
+                  <label for="tiempo_traslado" class="block text-sm font-semibold text-slate-700 mb-1.5">Tiempo estimado de traslado (minutos)</label>
+                  <input type="number" id="tiempo_traslado" name="tiempo_traslado" min="0" max="600" placeholder="Ej. 45"
+                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- SECCIÓN 5: SALUD Y BIENESTAR INTEGRAL                           -->
+        <!-- =============================================================== -->
+        <section id="sec-5" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden scroll-mt-28">
+          <div class="bg-institucional-900 text-white px-5 py-4 flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-white/15 font-bold text-sm flex items-center justify-center shrink-0">5</span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold">Salud y Bienestar Integral</h2>
+              <p class="text-xs text-slate-300">Información médica preventiva, alergias y adecuaciones educativas</p>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Grupo sanguíneo y Rh -->
+            <div data-otro-group="grupo_sanguineo">
+              <label for="grupo_sanguineo" class="block text-sm font-semibold text-slate-700 mb-1.5">Grupo sanguíneo y Rh</label>
+              <select id="grupo_sanguineo" name="grupo_sanguineo" data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione grupo sanguíneo...</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="No sabe / No recuerda">No sabe / No recuerda</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="grupo_sanguineo_otro" name="grupo_sanguineo_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Enfermedad crónica o condición médica + Otra -->
+            <div data-otro-group="enfermedad_cronica">
+              <label for="enfermedad_cronica" class="block text-sm font-semibold text-slate-700 mb-1.5">Enfermedad crónica o condición médica</label>
+              <select id="enfermedad_cronica" name="enfermedad_cronica" data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="Ninguna">Ninguna</option>
+                <option value="Asma / Afección respiratoria">Asma / Afección respiratoria</option>
+                <option value="Diabetes">Diabetes</option>
+                <option value="Hipertensión arterial">Hipertensión arterial</option>
+                <option value="Epilepsia">Epilepsia</option>
+                <option value="Gastritis / Afección gastrointestinal">Gastritis / Afección gastrointestinal</option>
+                <option value="Migraña crónica">Migraña crónica</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="enfermedad_cronica_otro" name="enfermedad_cronica_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Alergias conocidas + Otra -->
+            <div data-otro-group="alergias">
+              <label for="alergias" class="block text-sm font-semibold text-slate-700 mb-1.5">Alergias conocidas</label>
+              <select id="alergias" name="alergias" data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="Ninguna conocida">Ninguna conocida</option>
+                <option value="Medicamentos (ej. Penicilina, AINES)">Medicamentos (ej. Penicilina, AINES)</option>
+                <option value="Alimentos (mariscos, lácteos, frutos secos)">Alimentos (mariscos, lácteos, frutos secos)</option>
+                <option value="Polvo / Ácaros / Polen">Polvo / Ácaros / Polen</option>
+                <option value="Picaduras de insectos">Picaduras de insectos</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="alergias_otro" name="alergias_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Discapacidad o necesidad educativa específica + Otra -->
+            <div data-otro-group="discapacidad_nee">
+              <label for="discapacidad_nee" class="block text-sm font-semibold text-slate-700 mb-1.5">Discapacidad o necesidad educativa específica</label>
+              <select id="discapacidad_nee" name="discapacidad_nee" data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="Ninguna">Ninguna</option>
+                <option value="Visual (baja visión / ceguera)">Visual (baja visión / ceguera)</option>
+                <option value="Auditiva (hipoacusia / sordera)">Auditiva (hipoacusia / sordera)</option>
+                <option value="Física / Motora">Física / Motora</option>
+                <option value="Trastorno del aprendizaje / TDAH">Trastorno del aprendizaje / TDAH</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="discapacidad_nee_otro" name="discapacidad_nee_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Medicamentos de uso permanente -->
+            <div class="md:col-span-2">
+              <label for="medicamentos_permanentes" class="block text-sm font-semibold text-slate-700 mb-1.5">Medicamentos de uso permanente</label>
+              <input type="text" id="medicamentos_permanentes" name="medicamentos_permanentes" placeholder="Indique nombre del medicamento y frecuencia, o escriba 'Ninguno'"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- SECCIÓN 6: HABILIDADES, MÚSICA Y DEPORTE                        -->
+        <!-- =============================================================== -->
+        <section id="sec-6" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden scroll-mt-28">
+          <div class="bg-institucional-900 text-white px-5 py-4 flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-white/15 font-bold text-sm flex items-center justify-center shrink-0">6</span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold">Habilidades, Música y Deporte</h2>
+              <p class="text-xs text-slate-300">Talentos extracurriculares, práctica deportiva y aptitudes de liderazgo</p>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 space-y-6">
+            <!-- Habilidad musical / instrumento -->
+            <div data-otro-group="habilidad_musical" data-checkbox-group="habilidad_musical">
+              <span class="block text-sm font-semibold text-slate-700 mb-2">Habilidad musical / instrumento que ejecuta</span>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="habilidad_musical" value="Piano" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Piano</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="habilidad_musical" value="Guitarra" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Guitarra</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="habilidad_musical" value="Otro" data-is-otro="true" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Otro</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 cursor-pointer transition">
+                  <input type="checkbox" name="habilidad_musical" value="Ninguno" data-is-ninguno="true" class="w-4 h-4 rounded text-slate-700 focus:ring-slate-500" />
+                  <span class="text-sm font-medium text-slate-700">Ninguno</span>
+                </label>
+              </div>
+              <div class="otro-wrapper hidden mt-2.5 max-w-md">
+                <input type="text" id="habilidad_musical_otro" name="habilidad_musical_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Deporte que practica -->
+            <div data-otro-group="deporte" data-checkbox-group="deporte">
+              <span class="block text-sm font-semibold text-slate-700 mb-2">Deporte que practica</span>
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="deporte" value="Fútbol" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Fútbol</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="deporte" value="Básquetbol" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Básquetbol</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="deporte" value="Sóftbol" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Sóftbol</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="deporte" value="Otro" data-is-otro="true" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Otro</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 cursor-pointer transition">
+                  <input type="checkbox" name="deporte" value="Ninguno" data-is-ninguno="true" class="w-4 h-4 rounded text-slate-700 focus:ring-slate-500" />
+                  <span class="text-sm font-medium text-slate-700">Ninguno</span>
+                </label>
+              </div>
+              <div class="otro-wrapper hidden mt-2.5 max-w-md">
+                <input type="text" id="deporte_otro" name="deporte_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Otras habilidades artísticas / técnicas / liderazgo -->
+            <div data-otro-group="otras_habilidades" data-checkbox-group="otras_habilidades">
+              <span class="block text-sm font-semibold text-slate-700 mb-2">Otras habilidades artísticas, técnicas o de liderazgo</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="otras_habilidades" value="Canto / Dirección coral" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Canto / Dirección coral</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="otras_habilidades" value="Dibujo / Pintura / Artes" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Dibujo / Pintura / Artes</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="otras_habilidades" value="Danza / Teatro" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Danza / Teatro</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="otras_habilidades" value="Oratoria / Liderazgo" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Oratoria / Liderazgo</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="otras_habilidades" value="Informática / Diseño digital" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Informática / Diseño digital</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="otras_habilidades" value="Voluntariado / Servicio comunitario" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Voluntariado / Servicio comunitario</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
+                  <input type="checkbox" name="otras_habilidades" value="Otro" data-is-otro="true" class="w-4 h-4 rounded text-institucional-700 focus:ring-institucional-600" />
+                  <span class="text-sm text-slate-700">Otro</span>
+                </label>
+                <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 cursor-pointer transition">
+                  <input type="checkbox" name="otras_habilidades" value="Ninguna" data-is-ninguno="true" class="w-4 h-4 rounded text-slate-700 focus:ring-slate-500" />
+                  <span class="text-sm font-medium text-slate-700">Ninguna</span>
+                </label>
+              </div>
+              <div class="otro-wrapper hidden mt-2.5 max-w-md">
+                <input type="text" id="otras_habilidades_otro" name="otras_habilidades_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- SECCIÓN 7: AFILIACIÓN RELIGIOSA Y PARTICIPACIÓN COMUNITARIA     -->
+        <!-- =============================================================== -->
+        <section id="sec-7" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden scroll-mt-28">
+          <div class="bg-institucional-900 text-white px-5 py-4 flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-white/15 font-bold text-sm flex items-center justify-center shrink-0">7</span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold">Afiliación Religiosa y Participación Comunitaria</h2>
+              <p class="text-xs text-slate-300">Identidad espiritual, congregación y servicio comunitario</p>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Religión que profesa + Otra -->
+            <div data-otro-group="religion">
+              <label for="religion" class="block text-sm font-semibold text-slate-700 mb-1.5">Religión que profesa</label>
+              <select id="religion" name="religion" data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione opción...</option>
+                <option value="Católica">Católica</option>
+                <option value="Evangélica / Protestante">Evangélica / Protestante</option>
+                <option value="Adventista del Séptimo Día">Adventista del Séptimo Día</option>
+                <option value="Bautista">Bautista</option>
+                <option value="Pentecostal">Pentecostal</option>
+                <option value="Ninguna / Sin afiliación religiosa">Ninguna / Sin afiliación religiosa</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="religion_otro" name="religion_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Nombre de la iglesia o congregación -->
+            <div>
+              <label for="nombre_iglesia" class="block text-sm font-semibold text-slate-700 mb-1.5">Nombre de la iglesia o congregación</label>
+              <input type="text" id="nombre_iglesia" name="nombre_iglesia" placeholder="Ej. Parroquia Santa Catalina / Iglesia Central"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+            </div>
+
+            <!-- Frecuencia de asistencia + Otra -->
+            <div data-otro-group="frecuencia_asistencia">
+              <label for="frecuencia_asistencia" class="block text-sm font-semibold text-slate-700 mb-1.5">Frecuencia de asistencia</label>
+              <select id="frecuencia_asistencia" name="frecuencia_asistencia" data-has-otro="true"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm bg-white focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition">
+                <option value="">Seleccione frecuencia...</option>
+                <option value="Varias veces por semana">Varias veces por semana</option>
+                <option value="Semanal (cada fin de semana)">Semanal (cada fin de semana)</option>
+                <option value="Quincenal">Quincenal</option>
+                <option value="Mensual">Mensual</option>
+                <option value="Ocasional / Festividades">Ocasional / Festividades</option>
+                <option value="No asiste actualmente">No asiste actualmente</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div class="otro-wrapper hidden mt-2">
+                <input type="text" id="frecuencia_asistencia_otro" name="frecuencia_asistencia_otro" placeholder="Especifique cuál..."
+                  class="w-full rounded-xl border border-blue-300 bg-blue-50/40 px-3.5 py-2 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition" />
+              </div>
+              <p class="error-msg hidden text-xs text-red-600 mt-1 font-medium"></p>
+            </div>
+
+            <!-- Actividades que realiza o practica en su iglesia -->
+            <div class="md:col-span-2 lg:col-span-3">
+              <label for="actividades_iglesia" class="block text-sm font-semibold text-slate-700 mb-1.5">Actividades que realiza o practica en su iglesia o comunidad</label>
+              <p class="text-xs text-slate-500 mb-2">Puede pulsar los botones de inserción rápida o redactar libremente en el cuadro inferior:</p>
+              <div class="flex flex-wrap gap-2 mb-2.5">
+                <button type="button" data-quick-activity="Grupo de jóvenes"
+                  class="quick-activity-btn px-3 py-1.5 rounded-full text-xs font-medium bg-institucional-50 hover:bg-institucional-100 text-institucional-800 border border-institucional-600/25 transition">
+                  + Grupo de jóvenes
+                </button>
+                <button type="button" data-quick-activity="Grupo de alabanza / coro"
+                  class="quick-activity-btn px-3 py-1.5 rounded-full text-xs font-medium bg-institucional-50 hover:bg-institucional-100 text-institucional-800 border border-institucional-600/25 transition">
+                  + Grupo de alabanza / coro
+                </button>
+                <button type="button" data-quick-activity="Servicio social"
+                  class="quick-activity-btn px-3 py-1.5 rounded-full text-xs font-medium bg-institucional-50 hover:bg-institucional-100 text-institucional-800 border border-institucional-600/25 transition">
+                  + Servicio social
+                </button>
+                <button type="button" data-quick-activity="Catequesis / Escuela dominical"
+                  class="quick-activity-btn px-3 py-1.5 rounded-full text-xs font-medium bg-institucional-50 hover:bg-institucional-100 text-institucional-800 border border-institucional-600/25 transition">
+                  + Catequesis / Escuela dominical
+                </button>
+                <button type="button" data-quick-activity="Ujier / Protocolo"
+                  class="quick-activity-btn px-3 py-1.5 rounded-full text-xs font-medium bg-institucional-50 hover:bg-institucional-100 text-institucional-800 border border-institucional-600/25 transition">
+                  + Ujier / Protocolo
+                </button>
+                <button type="button" data-quick-activity="Misiones / Evangelismo"
+                  class="quick-activity-btn px-3 py-1.5 rounded-full text-xs font-medium bg-institucional-50 hover:bg-institucional-100 text-institucional-800 border border-institucional-600/25 transition">
+                  + Misiones / Evangelismo
+                </button>
+              </div>
+              <textarea id="actividades_iglesia" name="actividades_iglesia" rows="2" placeholder="Detalle las actividades comunitarias, ministeriales o de servicio en las que participa..."
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-institucional-600 focus:ring-2 focus:ring-institucional-600/20 outline-none transition"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================== -->
+        <!-- BARRA DE ACCIONES DEL FORMULARIO                                -->
+        <!-- =============================================================== -->
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-4 sm:p-6">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div class="text-xs text-slate-500">
+              <p class="font-semibold text-slate-700">Declaración de veracidad</p>
+              <p>Los datos consignados en esta ficha tienen carácter confidencial y uso estrictamente académico e institucional.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+              <!-- Botón Principal de Envío -->
+              <button type="submit" id="btn-submit"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-institucional-800 hover:bg-institucional-900 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-bold shadow-sm transition">
+                <svg id="submit-icon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <svg id="submit-spinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span id="submit-text">Guardar y Enviar a Google Sheets</span>
+              </button>
+
+              <!-- Ver Resumen -->
+              <button type="button" id="btn-preview"
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-institucional-800 border border-blue-200 text-sm font-semibold transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Ver Resumen</span>
+              </button>
+
+              <!-- Imprimir / Guardar PDF -->
+              <button type="button" id="btn-print"
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-sm font-semibold transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                <span>Imprimir / Guardar PDF</span>
+              </button>
+
+              <!-- Exportar JSON -->
+              <button type="button" id="btn-export-json"
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-sm font-semibold transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Exportar JSON</span>
+              </button>
+
+              <!-- Limpiar Formulario -->
+              <button type="button" id="btn-clear-form"
+                class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-sm font-semibold transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Limpiar Formulario</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="bg-white border-t border-slate-200 py-4 px-4 sm:px-6 text-center text-xs text-slate-500">
+      Ficha Integral del Estudiante v1.4 &bull; Sistema de Registro Estudiantil y Seguimiento de Plan de Grado &bull; El Salvador
+    </footer>
+
+    <!-- =================================================================== -->
+    <!-- MODAL 1: VISTA PREVIA DE RESUMEN                                    -->
+    <!-- =================================================================== -->
+    <div id="modal-preview" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-preview-title">
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="bg-institucional-900 text-white px-5 py-4 flex items-center justify-between">
+          <div>
+            <h3 id="modal-preview-title" class="text-base sm:text-lg font-bold">Resumen de la Ficha Integral del Estudiante</h3>
+            <p class="text-xs text-slate-300">Verifique que toda la información sea correcta antes de enviar o imprimir</p>
+          </div>
+          <button type="button" data-close-modal="modal-preview" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition" aria-label="Cerrar resumen">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div id="modal-preview-body" class="p-5 sm:p-6 overflow-y-auto space-y-5 text-sm">
+          <!-- Contenido sanitizado insertado dinámicamente -->
+        </div>
+        <div class="bg-slate-50 border-t border-slate-200 px-5 py-3.5 flex flex-wrap items-center justify-end gap-2.5">
+          <button type="button" id="btn-modal-print" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs sm:text-sm font-semibold transition">
+            Imprimir / Guardar PDF
+          </button>
+          <button type="button" data-close-modal="modal-preview" class="px-4 py-2 rounded-xl bg-institucional-800 hover:bg-institucional-900 text-white text-xs sm:text-sm font-semibold transition">
+            Cerrar Vista Previa
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MODAL 2: CONFIRMACIÓN DE ENVÍO EXITOSO                              -->
+    <!-- =================================================================== -->
+    <div id="modal-success" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-success-title">
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden">
+        <div class="bg-emerald-700 text-white px-6 py-5 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <h3 id="modal-success-title" class="text-lg font-bold">¡Registro Enviado Exitosamente!</h3>
+            <p class="text-xs text-emerald-100">Los datos han sido transmitidos a Google Sheets correctamente.</p>
+          </div>
+        </div>
+        <div id="modal-success-body" class="p-6 space-y-4 text-sm text-slate-700">
+          <!-- Detalle sanitizado del registro enviado -->
+        </div>
+        <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex flex-wrap items-center justify-end gap-2.5">
+          <button type="button" id="btn-success-print" class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs sm:text-sm font-semibold transition">
+            Imprimir / Guardar PDF
+          </button>
+          <button type="button" id="btn-success-json" class="px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs sm:text-sm font-semibold transition">
+            Descargar Respaldo JSON
+          </button>
+          <button type="button" id="btn-success-new" class="px-4 py-2.5 rounded-xl bg-institucional-800 hover:bg-institucional-900 text-white text-xs sm:text-sm font-bold transition">
+            Registrar Otro Estudiante
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MODAL 3: RESPALDO SIN CONEXIÓN / ERROR DE RED                       -->
+    <!-- =================================================================== -->
+    <div id="modal-offline" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-offline-title">
+      <div class="bg-white rounded-2xl shadow-2xl border border-amber-300 max-w-lg w-full overflow-hidden">
+        <div class="bg-amber-600 text-white px-6 py-4 flex items-center gap-3">
+          <svg class="w-7 h-7 text-white shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" />
+          </svg>
+          <div>
+            <h3 id="modal-offline-title" class="text-base sm:text-lg font-bold">Sin conexión — Respaldo Local Guardado</h3>
+            <p class="text-xs text-amber-100">Su información está segura y no se ha perdido.</p>
+          </div>
+        </div>
+        <div class="p-6 space-y-3 text-sm text-slate-700">
+          <p>No fue posible conectar con el servidor de Google Sheets en este momento. Se ha guardado un respaldo automático en su navegador bajo la clave <code class="px-1.5 py-0.5 rounded bg-slate-100 text-xs font-mono">ficha_estudiante_v1_4_pendiente</code>.</p>
+          <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+            <p><strong>Folio respaldado:</strong> <span id="offline-folio-display" class="font-mono"></span></p>
+            <p class="mt-1">Verifique su acceso a internet y presione <strong>"Reintentar envío ahora"</strong> o descargue una copia JSON.</p>
+          </div>
+        </div>
+        <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex flex-wrap items-center justify-end gap-2.5">
+          <button type="button" id="btn-offline-json" class="px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs sm:text-sm font-semibold transition">
+            Descargar JSON
+          </button>
+          <button type="button" data-close-modal="modal-offline" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs sm:text-sm font-medium transition">
+            Cerrar
+          </button>
+          <button type="button" id="btn-offline-retry" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+            Reintentar envío ahora
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- MODAL 4: CONFIRMACIÓN PARA LIMPIAR FORMULARIO (SIN window.confirm)  -->
+    <!-- =================================================================== -->
+    <div id="modal-confirm-clear" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-clear-title">
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
+        <div class="bg-red-700 text-white px-5 py-4 flex items-center gap-3">
+          <svg class="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <h3 id="modal-clear-title" class="text-base font-bold">¿Limpiar todo el formulario?</h3>
+        </div>
+        <div class="p-5 text-sm text-slate-700 space-y-2">
+          <p>Esta acción borrará todos los datos ingresados actualmente en las 7 secciones y generará un nuevo número de folio.</p>
+          <p class="text-xs text-slate-500">Si desea conservar una copia antes de limpiar, utilice "Exportar JSON" o "Imprimir / Guardar PDF".</p>
+        </div>
+        <div class="bg-slate-50 border-t border-slate-200 px-5 py-3.5 flex items-center justify-end gap-2.5">
+          <button type="button" data-close-modal="modal-confirm-clear" class="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs sm:text-sm font-semibold transition">
+            Cancelar
+          </button>
+          <button type="button" id="btn-confirm-clear-yes" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold transition">
+            Sí, limpiar formulario
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notificación Toast Flotante -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 max-w-sm w-full pointer-events-none flex flex-col gap-2"></div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- DOCUMENTO FORMATEADO PARA IMPRESIÓN TAMAÑO CARTA (US LETTER)          -->
+  <!-- ===================================================================== -->
+  <div id="print-document" aria-hidden="true">
+    <!-- Se renderiza dinámicamente con sanitización XSS antes de window.print() -->
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- LÓGICA DE APLICACIÓN, VALIDACIÓN, SANITIZACIÓN Y GOOGLE SHEETS        -->
+  <!-- ===================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      /**
+       * URL oficial del Web App de Google Apps Script para recepción de registros
+       */
+      const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6Z11OilSsSipEhHwzMUDoxfePJzWqBifgPURkVbjo5MwGayWFdiNipjcsGX74_N0Q/exec";
+
+      /**
+       * Claves de almacenamiento local
+       */
+      const PENDING_STORAGE_KEY = "ficha_estudiante_v1_4_pendiente";
+      const DRAFT_STORAGE_KEY = "ficha_estudiante_v1_4_borrador";
+
+      /**
+       * Estado global controlado de la aplicación
+       */
+      const state = {
+        folio: "",
+        isSubmitting: false,
+        lastSubmittedPayload: null
+      };
+
+      /* =================================================================== */
+      /* 1. UTILIDADES DE SEGURIDAD, FORMATO Y ZONA HORARIA                  */
+      /* =================================================================== */
+
+      /**
+       * Escapa caracteres especiales HTML para prevenir inyección XSS
+       * en modales de resumen y vista de impresión.
+       * @param {*} value
+       * @returns {string}
+       */
+      function escapeHTML(value) {
+        if (value === null || value === undefined) return "";
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;")
+          .replace(/`/g, "&#96;");
+      }
+
+      /**
+       * Genera un folio único con formato FIE-2026-XXXXXX
+       * @returns {string}
+       */
+      function generateFolio() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let suffix = "";
+        for (let i = 0; i < 6; i++) {
+          suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return "FIE-2026-" + suffix;
+      }
+
+      /**
+       * Obtiene marca de tiempo local formateada para El Salvador (UTC-6)
+       * @param {Date} dateObj
+       * @returns {string}
+       */
+      function getElSalvadorTimestamp(dateObj) {
+        try {
+          return new Intl.DateTimeFormat("es-SV", {
+            timeZone: "America/El_Salvador",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true
+          }).format(dateObj);
+        } catch (err) {
+          return dateObj.toLocaleString("es-SV");
+        }
+      }
+
+      /**
+       * Muestra un mensaje flotante no intrusivo (reemplazo seguro de alert)
+       * @param {string} message
+       * @param {"info"|"success"|"warning"|"error"} type
+       */
+      function showToast(message, type) {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+
+        const styles = {
+          info: "bg-slate-900 text-white border-slate-700",
+          success: "bg-emerald-700 text-white border-emerald-600",
+          warning: "bg-amber-600 text-white border-amber-500",
+          error: "bg-red-700 text-white border-red-600"
+        };
+
+        const toast = document.createElement("div");
+        toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-medium transition-all duration-300 ${styles[type] || styles.info}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transform = "translateY(6px)";
+          setTimeout(() => toast.remove(), 300);
+        }, 4200);
+      }
+
+      /* =================================================================== */
+      /* 2. CÁLCULO DE EDAD SIN ERROR DE ZONA HORARIA UTC                    */
+      /* =================================================================== */
+
+      /**
+       * Parsea YYYY-MM-DD manualmente mediante split('-') para evitar desfase
+       * de un día en UTC-6 (El Salvador) y valida que no sea fecha futura.
+       * @param {string} dobString
+       * @returns {{ valid: boolean, age: number|null, error: string }}
+       */
+      function calculateAgeFromLocalDate(dobString) {
+        if (!dobString || !dobString.trim()) {
+          return { valid: false, age: null, error: "La fecha de nacimiento es obligatoria." };
+        }
+
+        const parts = dobString.trim().split("-");
+        if (parts.length !== 3) {
+          return { valid: false, age: null, error: "Formato de fecha inválido." };
+        }
+
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Mes 0-indexado
+        const day = parseInt(parts[2], 10);
+
+        if (isNaN(year) || isNaN(month) || isNaN(day) || year < 1900) {
+          return { valid: false, age: null, error: "Ingrese una fecha de nacimiento válida." };
+        }
+
+        const birthDate = new Date(year, month, day);
+        // Verificar calendario real (ej. rechazar 30 de febrero)
+        if (
+          birthDate.getFullYear() !== year ||
+          birthDate.getMonth() !== month ||
+          birthDate.getDate() !== day
+        ) {
+          return { valid: false, age: null, error: "La fecha ingresada no existe en el calendario." };
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (birthDate > today) {
+          return { valid: false, age: null, error: "La fecha de nacimiento no puede ser una fecha futura." };
+        }
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+
+        if (age < 10 || age > 110) {
+          return { valid: false, age: null, error: "Verifique el año de nacimiento ingresado." };
+        }
+
+        return { valid: true, age: age, error: "" };
+      }
+
+      /**
+       * Actualiza la interfaz de edad al modificar la fecha de nacimiento
+       */
+      function handleBirthDateChange() {
+        const dobInput = document.getElementById("fecha_nacimiento");
+        const ageDisplay = document.getElementById("edad_display");
+        const ageHidden = document.getElementById("edad");
+        const container = dobInput.closest("div").parentElement;
+        const errorEl = container.querySelector(".error-msg");
+
+        if (!dobInput.value) {
+          ageDisplay.textContent = "--";
+          ageHidden.value = "";
+          clearFieldError(dobInput, errorEl);
+          return;
+        }
+
+        const result = calculateAgeFromLocalDate(dobInput.value);
+        if (!result.valid) {
+          ageDisplay.textContent = "--";
+          ageHidden.value = "";
+          setFieldError(dobInput, errorEl, result.error);
+        } else {
+          ageDisplay.textContent = String(result.age);
+          ageHidden.value = String(result.age);
+          clearFieldError(dobInput, errorEl);
+        }
+      }
+
+      /* =================================================================== */
+      /* 3. CÁLCULO SEGURO DE ÍNDICE DE HACINAMIENTO (SIN DIVISIÓN POR CERO) */
+      /* =================================================================== */
+
+      function updateOvercrowdingIndex() {
+        const habInput = document.getElementById("total_habitantes");
+        const dormInput = document.getElementById("numero_dormitorios");
+        const valDisplay = document.getElementById("hacinamiento_valor");
+        const badge = document.getElementById("hacinamiento_badge");
+        const hiddenInput = document.getElementById("indice_hacinamiento");
+
+        const habitantes = parseInt(habInput.value, 10);
+        const dormitorios = parseInt(dormInput.value, 10);
+
+        if (isNaN(habitantes) || habitantes <= 0 || isNaN(dormitorios) || dormitorios < 0) {
+          valDisplay.textContent = "--";
+          badge.textContent = "Pendiente";
+          badge.className = "px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200 text-slate-700";
+          hiddenInput.value = "";
+          return;
+        }
+
+        // Protección explícita contra división por cero
+        if (dormitorios === 0) {
+          valDisplay.textContent = `${habitantes} pers. / 0 dorm.`;
+          badge.textContent = "Hacinamiento crítico (sin dormitorios)";
+          badge.className = "px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-800";
+          hiddenInput.value = `Sin dormitorios exclusivos (${habitantes} habitantes) - Hacinamiento crítico`;
+          return;
+        }
+
+        const ratio = habitantes / dormitorios;
+        const formattedRatio = ratio.toFixed(2);
+        let levelText = "";
+        let badgeClasses = "";
+
+        if (ratio <= 2.0) {
+          levelText = "Sin hacinamiento (Normal)";
+          badgeClasses = "bg-emerald-100 text-emerald-800";
+        } else if (ratio <= 3.0) {
+          levelText = "Hacinamiento moderado";
+          badgeClasses = "bg-amber-100 text-amber-800";
+        } else {
+          levelText = "Hacinamiento crítico";
+          badgeClasses = "bg-red-100 text-red-800";
+        }
+
+        valDisplay.textContent = `${formattedRatio} pers./dorm.`;
+        badge.textContent = levelText;
+        badge.className = `px-2 py-0.5 rounded-full text-[11px] font-semibold ${badgeClasses}`;
+        hiddenInput.value = `${formattedRatio} pers./dorm. (${levelText})`;
+      }
+
+      /* =================================================================== */
+      /* 4. DESPLIEGUE DINÁMICO UNIVERSAL PARA "OTRO" / "OTRA" Y EXCLUSIÓN   */
+      /*    MUTUA AUTOMÁTICA PARA "NINGUNO" / "NINGUNA"                      */
+      /* =================================================================== */
+
+      /**
+       * Verifica si un valor corresponde a "Otro" u "Otra"
+       * @param {string} val
+       * @returns {boolean}
+       */
+      function isOtroOption(val) {
+        if (!val) return false;
+        const normalized = val.trim().toLowerCase();
+        return normalized === "otro" || normalized === "otra";
+      }
+
+      /**
+       * Actualiza la visibilidad y enfoque del campo de texto "Otro/Otra"
+       * para un contenedor [data-otro-group].
+       * @param {HTMLElement} groupEl
+       * @param {boolean} shouldFocus
+       */
+      function syncOtroGroupVisibility(groupEl, shouldFocus) {
+        if (!groupEl) return;
+        const wrapper = groupEl.querySelector(".otro-wrapper");
+        if (!wrapper) return;
+        const textInput = wrapper.querySelector("input[type='text']");
+        const errorEl = groupEl.querySelector(".error-msg");
+
+        let isOtroActive = false;
+
+        const selectEl = groupEl.querySelector("select");
+        if (selectEl) {
+          isOtroActive = isOtroOption(selectEl.value);
+        } else {
+          const checkedInputs = groupEl.querySelectorAll("input[type='radio']:checked, input[type='checkbox']:checked");
+          checkedInputs.forEach((inp) => {
+            if (isOtroOption(inp.value) || inp.dataset.isOtro === "true") {
+              isOtroActive = true;
+            }
+          });
+        }
+
+        if (isOtroActive) {
+          wrapper.classList.remove("hidden");
+          if (shouldFocus && textInput) {
+            setTimeout(() => textInput.focus(), 30);
+          }
+        } else {
+          wrapper.classList.add("hidden");
+          if (textInput) {
+            textInput.classList.remove("field-invalid");
+          }
+          if (errorEl) {
+            errorEl.classList.add("hidden");
+            errorEl.textContent = "";
+          }
+        }
+      }
+
+      /**
+       * Maneja la exclusión mutua en grupos de checkboxes que contienen
+       * la opción "Ninguno" / "Ninguna".
+       * @param {HTMLElement} checkboxGroupEl
+       * @param {HTMLInputElement} changedCheckbox
+       */
+      function handleCheckboxMutualExclusion(checkboxGroupEl, changedCheckbox) {
+        if (!checkboxGroupEl || !changedCheckbox) return;
+        const allBoxes = Array.from(checkboxGroupEl.querySelectorAll("input[type='checkbox']"));
+        const ningunoBox = allBoxes.find((cb) => cb.dataset.isNinguno === "true");
+
+        if (!ningunoBox) return;
+
+        if (changedCheckbox === ningunoBox && ningunoBox.checked) {
+          // Al marcar "Ninguno/Ninguna", desmarcar todas las demás opciones
+          allBoxes.forEach((cb) => {
+            if (cb !== ningunoBox) {
+              cb.checked = false;
+            }
+          });
+        } else if (changedCheckbox !== ningunoBox && changedCheckbox.checked) {
+          // Al marcar cualquier otra opción, desmarcar "Ninguno/Ninguna"
+          ningunoBox.checked = false;
+        }
+      }
+
+      /**
+       * Inicializa todos los listeners para grupos "Otro/Otra" y "Ninguno/Ninguna"
+       */
+      function initDynamicOptionHandlers() {
+        // 1. Selects con data-has-otro="true"
+        document.querySelectorAll("select[data-has-otro='true']").forEach((selectEl) => {
+          selectEl.addEventListener("change", () => {
+            const groupEl = selectEl.closest("[data-otro-group]");
+            syncOtroGroupVisibility(groupEl, true);
+            clearFieldError(selectEl, groupEl ? groupEl.querySelector(".error-msg") : null);
+          });
+        });
+
+        // 2. Grupos de checkboxes con exclusión mutua y/o opción "Otro"
+        document.querySelectorAll("[data-checkbox-group]").forEach((groupEl) => {
+          groupEl.addEventListener("change", (event) => {
+            const target = event.target;
+            if (target && target.type === "checkbox") {
+              handleCheckboxMutualExclusion(groupEl, target);
+              const shouldFocus = target.checked && (isOtroOption(target.value) || target.dataset.isOtro === "true");
+              syncOtroGroupVisibility(groupEl, shouldFocus);
+            }
+          });
+        });
+
+        // 3. Radios con data-otro-group (por extensibilidad)
+        document.querySelectorAll("[data-otro-group] input[type='radio']").forEach((radioEl) => {
+          radioEl.addEventListener("change", () => {
+            const groupEl = radioEl.closest("[data-otro-group]");
+            const shouldFocus = radioEl.checked && isOtroOption(radioEl.value);
+            syncOtroGroupVisibility(groupEl, shouldFocus);
+          });
+        });
+
+        // 4. Limpiar error visual al escribir en los campos *_otro
+        document.querySelectorAll(".otro-wrapper input[type='text']").forEach((otroInput) => {
+          otroInput.addEventListener("input", () => {
+            if (otroInput.value.trim().length > 0) {
+              const groupEl = otroInput.closest("[data-otro-group]");
+              clearFieldError(otroInput, groupEl ? groupEl.querySelector(".error-msg") : null);
+            }
+          });
+        });
+      }
+
+      /* =================================================================== */
+      /* 5. CONSTRUCCIÓN DE PAYLOAD PLANO PARA GOOGLE SHEETS                 */
+      /* =================================================================== */
+
+      /**
+       * Obtiene el valor resuelto de un campo <select> con soporte "Otro/Otra".
+       * Si "Otro/Otra" no está seleccionado, ignora completamente el campo texto.
+       * @param {string} selectId
+       * @param {string} otroId
+       * @returns {string}
+       */
+      function getSelectWithOtroValue(selectId, otroId) {
+        const selectEl = document.getElementById(selectId);
+        if (!selectEl || !selectEl.value) return "";
+        const val = selectEl.value.trim();
+        if (isOtroOption(val)) {
+          const otroEl = document.getElementById(otroId);
+          const customText = otroEl ? otroEl.value.trim() : "";
+          return customText ? `${val}: ${customText}` : val;
+        }
+        return val;
+      }
+
+      /**
+       * Obtiene el valor resuelto de un grupo de checkboxes con soporte "Otro/Otra".
+       * Si "Otro/Otra" no está marcado, ignora completamente el campo texto.
+       * @param {string} groupName
+       * @param {string} otroId
+       * @returns {string}
+       */
+      function getCheckboxGroupWithOtroValue(groupName, otroId) {
+        const checked = Array.from(document.querySelectorAll(`input[name="${groupName}"]:checked`));
+        if (checked.length === 0) return "";
+
+        const resolved = checked.map((cb) => {
+          const val = cb.value.trim();
+          if (isOtroOption(val) || cb.dataset.isOtro === "true") {
+            const otroEl = document.getElementById(otroId);
+            const customText = otroEl ? otroEl.value.trim() : "";
+            return customText ? `${val}: ${customText}` : val;
+          }
+          return val;
+        });
+
+        return resolved.join(", ");
+      }
+
+      /**
+       * Obtiene el valor de un grupo de radio buttons
+       * @param {string} groupName
+       * @returns {string}
+       */
+      function getRadioValue(groupName) {
+        const checked = document.querySelector(`input[name="${groupName}"]:checked`);
+        return checked ? checked.value.trim() : "";
+      }
+
+      /**
+       * Obtiene el valor limpio de un input/textarea estándar
+       * @param {string} id
+       * @returns {string}
+       */
+      function getCleanValue(id) {
+        const el = document.getElementById(id);
+        return el && el.value !== undefined && el.value !== null ? String(el.value).trim() : "";
+      }
+
+      /**
+       * Construye un objeto JSON estrictamente plano sin undefined, NaN ni objetos anidados,
+       * listo para ser enviado a Google Apps Script / Google Sheets.
+       * @returns {Object}
+       */
+      function buildFlatSheetPayload() {
+        const now = new Date();
+        const ageResult = calculateAgeFromLocalDate(getCleanValue("fecha_nacimiento"));
+        const safeAge = ageResult.valid && typeof ageResult.age === "number" && !isNaN(ageResult.age)
+          ? String(ageResult.age)
+          : "";
+
+        const rawPayload = {
+          // Metadatos del registro
+          folio: state.folio || generateFolio(),
+          version_ficha: "1.4",
+          fecha_registro_iso: now.toISOString(),
+          fecha_registro_sv: getElSalvadorTimestamp(now),
+
+          // Sección 1: Datos Personales e Identificación
+          nombres: getCleanValue("nombres"),
+          apellidos: getCleanValue("apellidos"),
+          carnet_nie: getCleanValue("carnet_nie").toUpperCase(),
+          dui: getCleanValue("dui"),
+          fecha_nacimiento: getCleanValue("fecha_nacimiento"),
+          edad: safeAge,
+          sexo: getRadioValue("sexo"),
+          estado_civil: getSelectWithOtroValue("estado_civil", "estado_civil_otro"),
+          telefono: getCleanValue("telefono"),
+          correo: getCleanValue("correo"),
+          departamento: getCleanValue("departamento"),
+          municipio: getCleanValue("municipio"),
+          direccion: getCleanValue("direccion"),
+          zona_residencia: getSelectWithOtroValue("zona_residencia", "zona_residencia_otro"),
+
+          // Sección 2: Datos Académicos y Plan de Grado
+          carrera: getSelectWithOtroValue("carrera", "carrera_otro"),
+          anio_ciclo: getSelectWithOtroValue("anio_ciclo", "anio_ciclo_otro"),
+          turno_jornada: getSelectWithOtroValue("turno_jornada", "turno_jornada_otro"),
+          condicion_academica: getSelectWithOtroValue("condicion_academica", "condicion_academica_otro"),
+          modalidad_plan_grado: getSelectWithOtroValue("modalidad_plan_grado", "modalidad_plan_grado_otro"),
+          tema_plan_grado: getCleanValue("tema_plan_grado"),
+          apoyo_plan_grado: getSelectWithOtroValue("apoyo_plan_grado", "apoyo_plan_grado_otro"),
+
+          // Sección 3: Contacto Familiar y de Emergencia
+          contacto_emergencia_nombre: getCleanValue("contacto_emergencia_nombre"),
+          contacto_emergencia_parentesco: getSelectWithOtroValue("contacto_emergencia_parentesco", "contacto_emergencia_parentesco_otro"),
+          contacto_emergencia_telefono: getCleanValue("contacto_emergencia_telefono"),
+          con_quien_vive: getSelectWithOtroValue("con_quien_vive", "con_quien_vive_otro"),
+          personas_dependientes: getCleanValue("personas_dependientes") || "0",
+
+          // Sección 4: Condiciones Socioeconómicas, Vivienda y Servicios Básicos
+          tipo_vivienda: getSelectWithOtroValue("tipo_vivienda", "tipo_vivienda_otro"),
+          tenencia_vivienda: getSelectWithOtroValue("tenencia_vivienda", "tenencia_vivienda_otro"),
+          material_paredes: getSelectWithOtroValue("material_paredes", "material_paredes_otro"),
+          material_techo: getSelectWithOtroValue("material_techo", "material_techo_otro"),
+          material_piso: getSelectWithOtroValue("material_piso", "material_piso_otro"),
+          total_habitantes: getCleanValue("total_habitantes"),
+          numero_dormitorios: getCleanValue("numero_dormitorios"),
+          indice_hacinamiento: getCleanValue("indice_hacinamiento"),
+          agua_potable: getSelectWithOtroValue("agua_potable", "agua_potable_otro"),
+          frecuencia_agua: getSelectWithOtroValue("frecuencia_agua", "frecuencia_agua_otro"),
+          energia_electrica: getSelectWithOtroValue("energia_electrica", "energia_electrica_otro"),
+          servicio_sanitario: getSelectWithOtroValue("servicio_sanitario", "servicio_sanitario_otro"),
+          acceso_internet: getSelectWithOtroValue("acceso_internet", "acceso_internet_otro"),
+          calidad_conexion: getSelectWithOtroValue("calidad_conexion", "calidad_conexion_otro"),
+          dispositivos: getCheckboxGroupWithOtroValue("dispositivos", "dispositivos_otro"),
+          situacion_laboral: getSelectWithOtroValue("situacion_laboral", "situacion_laboral_otro"),
+          sosten_economico: getSelectWithOtroValue("sosten_economico", "sosten_economico_otro"),
+          ingreso_familiar: getSelectWithOtroValue("ingreso_familiar", "ingreso_familiar_otro"),
+          medio_transporte: getSelectWithOtroValue("medio_transporte", "medio_transporte_otro"),
+          tiempo_traslado_min: getCleanValue("tiempo_traslado"),
+
+          // Sección 5: Salud y Bienestar Integral
+          grupo_sanguineo: getSelectWithOtroValue("grupo_sanguineo", "grupo_sanguineo_otro"),
+          enfermedad_cronica: getSelectWithOtroValue("enfermedad_cronica", "enfermedad_cronica_otro"),
+          medicamentos_permanentes: getCleanValue("medicamentos_permanentes"),
+          alergias: getSelectWithOtroValue("alergias", "alergias_otro"),
+          discapacidad_nee: getSelectWithOtroValue("discapacidad_nee", "discapacidad_nee_otro"),
+
+          // Sección 6: Habilidades, Música y Deporte
+          habilidad_musical: getCheckboxGroupWithOtroValue("habilidad_musical", "habilidad_musical_otro"),
+          deporte: getCheckboxGroupWithOtroValue("deporte", "deporte_otro"),
+          otras_habilidades: getCheckboxGroupWithOtroValue("otras_habilidades", "otras_habilidades_otro"),
+
+          // Sección 7: Afiliación Religiosa y Participación Comunitaria
+          religion: getSelectWithOtroValue("religion", "religion_otro"),
+          nombre_iglesia: getCleanValue("nombre_iglesia"),
+          frecuencia_asistencia: getSelectWithOtroValue("frecuencia_asistencia", "frecuencia_asistencia_otro"),
+          actividades_iglesia: getCleanValue("actividades_iglesia")
+        };
+
+        // Sanitización estructural final: asegurar cero undefined, NaN o estructuras anidadas
+        const cleanFlatPayload = {};
+        Object.keys(rawPayload).forEach((key) => {
+          const val = rawPayload[key];
+          if (val === undefined || val === null || (typeof val === "number" && isNaN(val))) {
+            cleanFlatPayload[key] = "";
+          } else if (typeof val === "object") {
+            cleanFlatPayload[key] = JSON.stringify(val);
+          } else {
+            cleanFlatPayload[key] = String(val);
+          }
+        });
+
+        return cleanFlatPayload;
+      }
+
+      /* =================================================================== */
+      /* 6. VALIDACIÓN INTEGRAL DEL FORMULARIO                               */
+      /* =================================================================== */
+
+      function setFieldError(inputEl, errorEl, message) {
+        if (inputEl) inputEl.classList.add("field-invalid");
+        if (errorEl) {
+          errorEl.textContent = message;
+          errorEl.classList.remove("hidden");
+        }
+      }
+
+      function clearFieldError(inputEl, errorEl) {
+        if (inputEl) inputEl.classList.remove("field-invalid");
+        if (errorEl) {
+          errorEl.textContent = "";
+          errorEl.classList.add("hidden");
+        }
+      }
+
+      /**
+       * Valida todos los campos requeridos, formatos y campos "Otro/Otra" activos.
+       * @returns {boolean}
+       */
+      function validateForm() {
+        const form = document.getElementById("ficha-form");
+        const summaryBox = document.getElementById("validation-summary");
+        const summaryText = document.getElementById("validation-summary-text");
+
+        let firstInvalidEl = null;
+        let errorCount = 0;
+
+        // 1. Validar todos los controles con atributo [required]
+        const requiredFields = form.querySelectorAll("[required]");
+        requiredFields.forEach((field) => {
+          if (field.type === "radio") {
+            const groupName = field.name;
+            const isAnyChecked = Boolean(form.querySelector(`input[name="${groupName}"]:checked`));
+            const groupContainer = document.getElementById(`${groupName}-group`) || field.closest("div");
+            const errorEl = groupContainer.parentElement.querySelector(".error-msg");
+
+            if (!isAnyChecked) {
+              errorCount++;
+              setFieldError(groupContainer, errorEl, "Seleccione una opción obligatoria.");
+              if (!firstInvalidEl) firstInvalidEl = groupContainer;
+            } else {
+              clearFieldError(groupContainer, errorEl);
+            }
+            return;
+          }
+
+          const parentDiv = field.closest("[data-otro-group]") || field.parentElement;
+          const errorEl = parentDiv.querySelector(".error-msg");
+          const val = field.value.trim();
+
+          if (!val) {
+            errorCount++;
+            setFieldError(field, errorEl, "Este campo es obligatorio.");
+            if (!firstInvalidEl) firstInvalidEl = field;
+          } else if (field.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+            errorCount++;
+            setFieldError(field, errorEl, "Ingrese un correo electrónico válido.");
+            if (!firstInvalidEl) firstInvalidEl = field;
+          } else {
+            clearFieldError(field, errorEl);
+          }
+        });
+
+        // 2. Validar fecha de nacimiento (no futura y válida)
+        const dobInput = document.getElementById("fecha_nacimiento");
+        if (dobInput && dobInput.value) {
+          const dobCheck = calculateAgeFromLocalDate(dobInput.value);
+          const dobErrorEl = dobInput.closest("div").parentElement.querySelector(".error-msg");
+          if (!dobCheck.valid) {
+            errorCount++;
+            setFieldError(dobInput, dobErrorEl, dobCheck.error);
+            if (!firstInvalidEl) firstInvalidEl = dobInput;
+          }
+        }
+
+        // 3. Validar formato de DUI si fue ingresado (opcional, pero si se escribe debe ser 8 dígitos + guion + 1 dígito)
+        const duiInput = document.getElementById("dui");
+        if (duiInput && duiInput.value.trim() !== "") {
+          const duiErrorEl = duiInput.parentElement.querySelector(".error-msg");
+          if (!/^\d{8}-\d$/.test(duiInput.value.trim())) {
+            errorCount++;
+            setFieldError(duiInput, duiErrorEl, "Formato de DUI inválido (debe ser 00000000-0).");
+            if (!firstInvalidEl) firstInvalidEl = duiInput;
+          } else {
+            clearFieldError(duiInput, duiErrorEl);
+          }
+        }
+
+        // 4. Validar habitantes y dormitorios
+        const habInput = document.getElementById("total_habitantes");
+        const dormInput = document.getElementById("numero_dormitorios");
+        const hacinamientoContainer = habInput.closest(".bg-slate-50");
+        const hacErrorEl = hacinamientoContainer.querySelector(".error-msg");
+        const habVal = parseInt(habInput.value, 10);
+        const dormVal = parseInt(dormInput.value, 10);
+
+        if (isNaN(habVal) || habVal < 1 || isNaN(dormVal) || dormVal < 0) {
+          errorCount++;
+          setFieldError(habVal < 1 || isNaN(habVal) ? habInput : dormInput, hacErrorEl, "Ingrese valores numéricos válidos (mínimo 1 habitante y 0 o más dormitorios).");
+          if (!firstInvalidEl) firstInvalidEl = habInput;
+        } else {
+          clearFieldError(habInput, hacErrorEl);
+          dormInput.classList.remove("field-invalid");
+        }
+
+        // 5. Validar TODOS los grupos con opción "Otro" / "Otra" activa
+        document.querySelectorAll("[data-otro-group]").forEach((groupEl) => {
+          const wrapper = groupEl.querySelector(".otro-wrapper");
+          if (!wrapper || wrapper.classList.contains("hidden")) return;
+
+          const textInput = wrapper.querySelector("input[type='text']");
+          const errorEl = groupEl.querySelector(".error-msg");
+
+          if (textInput && textInput.value.trim() === "") {
+            errorCount++;
+            setFieldError(textInput, errorEl, "Ha seleccionado 'Otro/Otra'; por favor especifique cuál en el cuadro de texto.");
+            if (!firstInvalidEl) firstInvalidEl = textInput;
+          } else if (textInput) {
+            clearFieldError(textInput, errorEl);
+          }
+        });
+
+        if (errorCount > 0) {
+          summaryBox.classList.remove("hidden");
+          summaryText.textContent = `Se detectaron ${errorCount} campo(s) pendiente(s) o con observaciones. Complete los campos resaltados en rojo.`;
+          if (firstInvalidEl) {
+            firstInvalidEl.scrollIntoView({ behavior: "smooth", block: "center" });
+            setTimeout(() => {
+              if (typeof firstInvalidEl.focus === "function") firstInvalidEl.focus();
+            }, 350);
+          }
+          return false;
+        }
+
+        summaryBox.classList.add("hidden");
+        return true;
+      }
+
+      /* =================================================================== */
+      /* 7. INTEGRACIÓN CON GOOGLE SHEETS Y RESPALDO OFFLINE EN localStorage */
+      /* =================================================================== */
+
+      /**
+       * Actualiza el indicador visual en tiempo real de estado de red
+       */
+      function updateNetworkStatusUI() {
+        const badge = document.getElementById("network-badge");
+        const dot = document.getElementById("network-dot");
+        const text = document.getElementById("network-text");
+        if (!badge || !dot || !text) return;
+
+        if (navigator.onLine) {
+          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30";
+          dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+          text.textContent = "En línea";
+        } else {
+          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/25 text-amber-200 border border-amber-400/40";
+          dot.className = "w-2 h-2 rounded-full bg-amber-400";
+          text.textContent = "Sin conexión";
+        }
+      }
+
+      /**
+       * Guarda respaldo automático en localStorage bajo "ficha_estudiante_v1_4_pendiente"
+       * @param {Object} payload
+       */
+      function savePendingOfflineBackup(payload) {
+        try {
+          localStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(payload));
+          checkPendingOfflineBanner();
+        } catch (err) {
+          console.error("Error al guardar respaldo en localStorage:", err);
+        }
+      }
+
+      /**
+       * Verifica si existe un registro pendiente en localStorage y muestra el aviso
+       */
+      function checkPendingOfflineBanner() {
+        const banner = document.getElementById("pending-backup-banner");
+        const folioLabel = document.getElementById("pending-folio-label");
+        if (!banner || !folioLabel) return;
+
+        try {
+          const raw = localStorage.getItem(PENDING_STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            folioLabel.textContent = parsed.folio || "Sin folio";
+            banner.classList.remove("hidden");
+          } else {
+            banner.classList.add("hidden");
+          }
+        } catch (err) {
+          banner.classList.add("hidden");
+        }
+      }
+
+      /**
+       * Bloquea/desbloquea el botón de envío con spinner durante la petición
+       * @param {boolean} loading
+       */
+      function setSubmitLoadingState(loading) {
+        state.isSubmitting = loading;
+        const btn = document.getElementById("btn-submit");
+        const icon = document.getElementById("submit-icon");
+        const spinner = document.getElementById("submit-spinner");
+        const text = document.getElementById("submit-text");
+
+        if (!btn) return;
+        btn.disabled = loading;
+        if (loading) {
+          icon.classList.add("hidden");
+          spinner.classList.remove("hidden");
+          text.textContent = "Enviando a Google Sheets...";
+        } else {
+          icon.classList.remove("hidden");
+          spinner.classList.add("hidden");
+          text.textContent = "Guardar y Enviar a Google Sheets";
+        }
+      }
+
+      /**
+       * Envía el payload plano a Google Apps Script utilizando fetch con mode: "no-cors"
+       * @param {Object} payload
+       */
+      async function sendPayloadToGoogleSheets(payload) {
+        if (state.isSubmitting) return;
+        state.lastSubmittedPayload = payload;
+
+        // 1. Verificar navigator.onLine antes de intentar fetch
+        if (!navigator.onLine) {
+          savePendingOfflineBackup(payload);
+          openOfflineModal(payload);
+          return;
+        }
+
+        setSubmitLoadingState(true);
+
+        try {
+          await fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8"
+            },
+            body: JSON.stringify(payload)
+          });
+
+          // Si fetch no lanza excepción en modo no-cors, la petición se transmitió con éxito
+          try {
+            localStorage.removeItem(PENDING_STORAGE_KEY);
+            localStorage.removeItem(DRAFT_STORAGE_KEY);
+          } catch (storageErr) {
+            // Ignorar errores de acceso a storage
+          }
+          checkPendingOfflineBanner();
+          openSuccessModal(payload);
+        } catch (networkError) {
+          console.error("Fallo de red al enviar a Google Sheets:", networkError);
+          savePendingOfflineBackup(payload);
+          openOfflineModal(payload);
+        } finally {
+          setSubmitLoadingState(false);
+        }
+      }
+
+      /* =================================================================== */
+      /* 8. MODALES DE RESUMEN, ÉXITO, RESPALDO OFFLINE E IMPRESIÓN US LETTER*/
+      /* =================================================================== */
+
+      /**
+       * Estructura organizada por secciones para renderizar resumen e impresión
+       * @param {Object} data
+       * @returns {Array}
+       */
+      function getStructuredSectionsForDisplay(data) {
+        return [
+          {
+            title: "1. Datos Personales e Identificación",
+            fields: [
+              { label: "Nombres", value: data.nombres },
+              { label: "Apellidos", value: data.apellidos },
+              { label: "Carnet / NIE", value: data.carnet_nie },
+              { label: "DUI", value: data.dui || "No especificado" },
+              { label: "Fecha de nacimiento", value: data.fecha_nacimiento },
+              { label: "Edad", value: data.edad ? `${data.edad} años` : "--" },
+              { label: "Sexo biológico", value: data.sexo },
+              { label: "Estado civil", value: data.estado_civil },
+              { label: "Teléfono personal", value: data.telefono },
+              { label: "Correo electrónico", value: data.correo },
+              { label: "Departamento", value: data.departamento },
+              { label: "Municipio / Distrito", value: data.municipio },
+              { label: "Zona de residencia", value: data.zona_residencia },
+              { label: "Dirección de residencia", value: data.direccion, full: true }
+            ]
+          },
+          {
+            title: "2. Datos Académicos y Plan de Grado",
+            fields: [
+              { label: "Carrera / Especialidad", value: data.carrera },
+              { label: "Año / Ciclo académico", value: data.anio_ciclo },
+              { label: "Turno / Jornada", value: data.turno_jornada },
+              { label: "Condición académica", value: data.condicion_academica },
+              { label: "Modalidad Plan de Grado", value: data.modalidad_plan_grado },
+              { label: "Principal apoyo requerido", value: data.apoyo_plan_grado },
+              { label: "Tema preliminar o área de interés", value: data.tema_plan_grado || "No especificado", full: true }
+            ]
+          },
+          {
+            title: "3. Contacto Familiar y de Emergencia",
+            fields: [
+              { label: "Contacto de emergencia", value: data.contacto_emergencia_nombre },
+              { label: "Parentesco", value: data.contacto_emergencia_parentesco },
+              { label: "Teléfono de emergencia", value: data.contacto_emergencia_telefono },
+              { label: "¿Con quién vive actualmente?", value: data.con_quien_vive },
+              { label: "Dependientes económicos", value: data.personas_dependientes }
+            ]
+          },
+          {
+            title: "4. Condiciones Socioeconómicas, Vivienda y Servicios Básicos",
+            fields: [
+              { label: "Tipo de vivienda", value: data.tipo_vivienda },
+              { label: "Tenencia de vivienda", value: data.tenencia_vivienda },
+              { label: "Material de paredes", value: data.material_paredes },
+              { label: "Material de techo", value: data.material_techo },
+              { label: "Material de piso", value: data.material_piso },
+              { label: "Habitantes / Dormitorios", value: `${data.total_habitantes || "0"} hab. / ${data.numero_dormitorios || "0"} dorm.` },
+              { label: "Índice de hacinamiento", value: data.indice_hacinamiento || "No calculado" },
+              { label: "Servicio de agua potable", value: data.agua_potable },
+              { label: "Frecuencia del agua", value: data.frecuencia_agua },
+              { label: "Energía eléctrica", value: data.energia_electrica },
+              { label: "Servicio sanitario", value: data.servicio_sanitario },
+              { label: "Acceso a internet", value: data.acceso_internet },
+              { label: "Calidad de conexión", value: data.calidad_conexion },
+              { label: "Dispositivos disponibles", value: data.dispositivos || "No especificado" },
+              { label: "Situación laboral", value: data.situacion_laboral },
+              { label: "Principal sostén económico", value: data.sosten_economico },
+              { label: "Ingreso familiar mensual", value: data.ingreso_familiar },
+              { label: "Medio de transporte", value: data.medio_transporte },
+              { label: "Tiempo de traslado", value: data.tiempo_traslado_min ? `${data.tiempo_traslado_min} minutos` : "No especificado" }
+            ]
+          },
+          {
+            title: "5. Salud y Bienestar Integral",
+            fields: [
+              { label: "Grupo sanguíneo y Rh", value: data.grupo_sanguineo || "No especificado" },
+              { label: "Enfermedad crónica", value: data.enfermedad_cronica || "Ninguna" },
+              { label: "Alergias conocidas", value: data.alergias || "Ninguna conocida" },
+              { label: "Discapacidad o NEE", value: data.discapacidad_nee || "Ninguna" },
+              { label: "Medicamentos permanentes", value: data.medicamentos_permanentes || "Ninguno", full: true }
+            ]
+          },
+          {
+            title: "6. Habilidades, Música y Deporte",
+            fields: [
+              { label: "Habilidad musical / instrumento", value: data.habilidad_musical || "No especificado" },
+              { label: "Deporte que practica", value: data.deporte || "No especificado" },
+              { label: "Otras habilidades", value: data.otras_habilidades || "No especificado", full: true }
+            ]
+          },
+          {
+            title: "7. Afiliación Religiosa y Participación Comunitaria",
+            fields: [
+              { label: "Religión que profesa", value: data.religion || "No especificado" },
+              { label: "Iglesia o congregación", value: data.nombre_iglesia || "No especificado" },
+              { label: "Frecuencia de asistencia", value: data.frecuencia_asistencia || "No especificado" },
+              { label: "Actividades en su iglesia", value: data.actividades_iglesia || "No especificado", full: true }
+            ]
+          }
+        ];
+      }
+
+      /**
+       * Abre el modal de vista previa con contenido estrictamente sanitizado (escapeHTML)
+       */
+      function openPreviewModal() {
+        const data = buildFlatSheetPayload();
+        const sections = getStructuredSectionsForDisplay(data);
+        const bodyEl = document.getElementById("modal-preview-body");
+
+        let html = `
+          <div class="p-3.5 rounded-xl bg-institucional-50 border border-blue-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span><strong>Folio:</strong> <span class="font-mono text-institucional-900">${escapeHTML(data.folio)}</span></span>
+            <span><strong>Fecha y hora (El Salvador):</strong> ${escapeHTML(data.fecha_registro_sv)}</span>
+          </div>
+        `;
+
+        sections.forEach((sec) => {
+          html += `
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <div class="bg-slate-100 px-4 py-2 font-bold text-xs uppercase tracking-wider text-institucional-900 border-b border-slate-200">
+                ${escapeHTML(sec.title)}
+              </div>
+              <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          `;
+          sec.fields.forEach((f) => {
+            html += `
+              <div class="${f.full ? "sm:col-span-2" : ""}">
+                <span class="block text-[11px] font-semibold uppercase text-slate-500">${escapeHTML(f.label)}</span>
+                <span class="block text-sm font-medium text-slate-900 break-words">${escapeHTML(f.value || "--")}</span>
+              </div>
+            `;
+          });
+          html += `</div></div>`;
+        });
+
+        bodyEl.innerHTML = html;
+        document.getElementById("modal-preview").classList.remove("hidden");
+      }
+
+      /**
+       * Abre el modal de confirmación de envío exitoso
+       * @param {Object} payload
+       */
+      function openSuccessModal(payload) {
+        const bodyEl = document.getElementById("modal-success-body");
+        bodyEl.innerHTML = `
+          <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1.5">
+            <p class="text-xs uppercase font-bold text-emerald-800">Comprobante de Registro Institucional</p>
+            <p><strong>Folio único:</strong> <span class="font-mono font-bold text-emerald-950">${escapeHTML(payload.folio)}</span></p>
+            <p><strong>Fecha y hora de registro:</strong> ${escapeHTML(payload.fecha_registro_sv)}</p>
+            <p><strong>Estudiante:</strong> ${escapeHTML(payload.nombres)} ${escapeHTML(payload.apellidos)}</p>
+            <p><strong>Carnet / NIE:</strong> ${escapeHTML(payload.carnet_nie)}</p>
+            <p><strong>Carrera / Especialidad:</strong> ${escapeHTML(payload.carrera)}</p>
+          </div>
+          <p class="text-xs text-slate-600">Puede imprimir o guardar en PDF este comprobante junto con su ficha completa, o descargar el respaldo en formato JSON.</p>
+        `;
+        document.getElementById("modal-success").classList.remove("hidden");
+      }
+
+      /**
+       * Abre el modal de respaldo sin conexión
+       * @param {Object} payload
+       */
+      function openOfflineModal(payload) {
+        const folioEl = document.getElementById("offline-folio-display");
+        if (folioEl) folioEl.textContent = payload.folio || state.folio;
+        document.getElementById("modal-offline").classList.remove("hidden");
+      }
+
+      /**
+       * Renderiza el formato institucional tamaño Carta (US Letter) y lanza window.print()
+       */
+      function prepareAndPrintUSLetter() {
+        const data = buildFlatSheetPayload();
+        const sections = getStructuredSectionsForDisplay(data);
+        const printContainer = document.getElementById("print-document");
+
+        let html = `
+          <!-- Encabezado Institucional de Impresión -->
+          <div style="border-bottom: 2px solid #0f2544; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+              <div style="font-size: 8pt; font-weight: 700; color: #1e467d; text-transform: uppercase; letter-spacing: 0.05em;">Registro Académico y Bienestar Estudiantil</div>
+              <h1 style="font-size: 14pt; font-weight: 800; color: #0f2544; margin: 2px 0;">FICHA INTEGRAL DEL ESTUDIANTE — VERSIÓN 1.4</h1>
+              <div style="font-size: 8.5pt; color: #475569;">Seguimiento Integral y Plan de Grado &bull; El Salvador</div>
+            </div>
+            <div style="text-align: right; font-size: 8.5pt;">
+              <div style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 3px 8px; border-radius: 4px; font-weight: 700;">
+                FOLIO: ${escapeHTML(data.folio)}
+              </div>
+              <div style="color: #475569; margin-top: 3px;">Fecha: ${escapeHTML(data.fecha_registro_sv)}</div>
+            </div>
+          </div>
+        `;
+
+        sections.forEach((sec) => {
+          html += `
+            <div class="print-section">
+              <div class="print-section-header">${escapeHTML(sec.title)}</div>
+              <div class="print-grid">
+          `;
+          sec.fields.forEach((f) => {
+            html += `
+              <div class="print-cell ${f.full ? "print-cell-full" : ""}">
+                <span class="print-label">${escapeHTML(f.label)}</span>
+                <span class="print-value">${escapeHTML(f.value || "--")}</span>
+              </div>
+            `;
+          });
+          html += `</div></div>`;
+        });
+
+        // Bloque de firmas institucionales (Estudiante y Docente / Tutor)
+        html += `
+          <div class="print-signatures">
+            <p style="font-size: 8pt; color: #475569; margin-bottom: 28px; text-align: justify;">
+              <strong>Declaración:</strong> Certifico que la información consignada en la presente Ficha Integral del Estudiante es fidedigna y autorizo su uso confidencial para fines académicos, de bienestar estudiantil y seguimiento de Plan de Grado.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; padding-top: 12px;">
+              <div style="text-align: center;">
+                <div style="border-top: 1px solid #0f172a; padding-top: 5px; font-weight: 700; font-size: 9pt;">Firma del Estudiante</div>
+                <div style="font-size: 8pt; color: #475569;">${escapeHTML(data.nombres)} ${escapeHTML(data.apellidos)}</div>
+                <div style="font-size: 8pt; color: #475569;">Carnet / NIE: ${escapeHTML(data.carnet_nie || "________________")}</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="border-top: 1px solid #0f172a; padding-top: 5px; font-weight: 700; font-size: 9pt;">Firma y Sello Docente / Tutor</div>
+                <div style="font-size: 8pt; color: #475569;">Coordinación Académica / Plan de Grado</div>
+                <div style="font-size: 8pt; color: #475569;">Fecha de recepción: ____ / ____ / 2026</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        printContainer.innerHTML = html;
+        window.print();
+      }
+
+      /**
+       * Descarga el payload plano en formato JSON
+       * @param {Object} customPayload
+       */
+      function downloadJSONBackup(customPayload) {
+        try {
+          const payload = customPayload || buildFlatSheetPayload();
+          const jsonStr = JSON.stringify(payload, null, 2);
+          const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `Ficha_Estudiante_${payload.folio || "v1_4"}.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showToast("Archivo JSON descargado correctamente.", "success");
+        } catch (err) {
+          console.error("Error exportando JSON:", err);
+          showToast("No se pudo generar el archivo JSON.", "error");
+        }
+      }
+
+      /* =================================================================== */
+      /* 9. PROGRESO EN TIEMPO REAL, BOTONES RÁPIDOS Y REINICIO LIMPIO       */
+      /* =================================================================== */
+
+      /**
+       * Calcula y actualiza la barra de progreso en tiempo real
+       */
+      function updateProgressBar() {
+        const trackedIds = [
+          "nombres", "apellidos", "carnet_nie", "fecha_nacimiento", "estado_civil",
+          "telefono", "correo", "departamento", "municipio", "zona_residencia", "direccion",
+          "carrera", "anio_ciclo", "turno_jornada", "condicion_academica", "modalidad_plan_grado", "apoyo_plan_grado",
+          "contacto_emergencia_nombre", "contacto_emergencia_parentesco", "contacto_emergencia_telefono", "con_quien_vive",
+          "tipo_vivienda", "tenencia_vivienda", "material_paredes", "material_techo", "material_piso",
+          "total_habitantes", "numero_dormitorios", "agua_potable", "frecuencia_agua",
+          "energia_electrica", "servicio_sanitario", "acceso_internet", "calidad_conexion",
+          "situacion_laboral", "sosten_economico", "ingreso_familiar", "medio_transporte"
+        ];
+
+        let filled = 0;
+        const total = trackedIds.length + 1; // +1 por radio sexo
+
+        trackedIds.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el && el.value.trim() !== "") filled++;
+        });
+
+        if (getRadioValue("sexo") !== "") filled++;
+
+        const percent = Math.min(100, Math.round((filled / total) * 100));
+        const bar = document.getElementById("progress-bar");
+        const label = document.getElementById("progress-label");
+        if (bar) bar.style.width = `${percent}%`;
+        if (label) label.textContent = `${percent}% completado`;
+      }
+
+      /**
+       * Botones de inserción rápida de actividades en Sección 7
+       */
+      function initQuickActivityButtons() {
+        const textarea = document.getElementById("actividades_iglesia");
+        const buttons = document.querySelectorAll(".quick-activity-btn");
+
+        buttons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const activity = btn.dataset.quickActivity;
+            if (!activity || !textarea) return;
+
+            const currentItems = textarea.value
+              .split(",")
+              .map((item) => item.trim())
+              .filter((item) => item.length > 0);
+
+            const existsIndex = currentItems.findIndex(
+              (item) => item.toLowerCase() === activity.toLowerCase()
+            );
+
+            if (existsIndex >= 0) {
+              currentItems.splice(existsIndex, 1);
+              btn.classList.remove("bg-institucional-800", "text-white");
+              btn.classList.add("bg-institucional-50", "text-institucional-800");
+            } else {
+              currentItems.push(activity);
+              btn.classList.remove("bg-institucional-50", "text-institucional-800");
+              btn.classList.add("bg-institucional-800", "text-white");
+            }
+
+            textarea.value = currentItems.join(", ");
+          });
+        });
+      }
+
+      /**
+       * Máscaras suaves de entrada para DUI y Teléfonos salvadoreños
+       */
+      function initInputMasks() {
+        const duiInput = document.getElementById("dui");
+        if (duiInput) {
+          duiInput.addEventListener("input", () => {
+            const digits = duiInput.value.replace(/\D/g, "").slice(0, 9);
+            if (digits.length > 8) {
+              duiInput.value = `${digits.slice(0, 8)}-${digits.slice(8)}`;
+            } else {
+              duiInput.value = digits;
+            }
+          });
+        }
+
+        ["telefono", "contacto_emergencia_telefono"].forEach((telId) => {
+          const telInput = document.getElementById(telId);
+          if (!telInput) return;
+          telInput.addEventListener("input", () => {
+            const digits = telInput.value.replace(/\D/g, "").slice(0, 8);
+            if (digits.length > 4) {
+              telInput.value = `${digits.slice(0, 4)}-${digits.slice(4)}`;
+            } else {
+              telInput.value = digits;
+            }
+          });
+        });
+      }
+
+      /**
+       * Reinicia completamente el formulario, oculta todos los campos "Otro",
+       * genera nuevo folio y restablece indicadores visuales.
+       */
+      function resetFullForm() {
+        const form = document.getElementById("ficha-form");
+        if (form) form.reset();
+
+        // Generar nuevo folio único
+        state.folio = generateFolio();
+        state.lastSubmittedPayload = null;
+        const headerFolio = document.getElementById("header-folio");
+        if (headerFolio) headerFolio.textContent = state.folio;
+
+        // Ocultar todos los contenedores "Otro/Otra"
+        document.querySelectorAll("[data-otro-group]").forEach((groupEl) => {
+          syncOtroGroupVisibility(groupEl, false);
+        });
+
+        // Limpiar mensajes y bordes de error
+        document.querySelectorAll(".field-invalid").forEach((el) => el.classList.remove("field-invalid"));
+        document.querySelectorAll(".error-msg").forEach((el) => {
+          el.textContent = "";
+          el.classList.add("hidden");
+        });
+        document.getElementById("validation-summary").classList.add("hidden");
+
+        // Restablecer edad y hacinamiento
+        document.getElementById("edad_display").textContent = "--";
+        document.getElementById("edad").value = "";
+        updateOvercrowdingIndex();
+
+        // Restablecer estado visual de botones de actividades rápidas
+        document.querySelectorAll(".quick-activity-btn").forEach((btn) => {
+          btn.classList.remove("bg-institucional-800", "text-white");
+          btn.classList.add("bg-institucional-50", "text-institucional-800");
+        });
+
+        try {
+          localStorage.removeItem(DRAFT_STORAGE_KEY);
+        } catch (err) {
+          // Ignorar
+        }
+
+        updateProgressBar();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      /* =================================================================== */
+      /* 10. INICIALIZACIÓN DE EVENTOS AL CARGAR EL DOCUMENTO                */
+      /* =================================================================== */
+
+      document.addEventListener("DOMContentLoaded", () => {
+        // 1. Asignar folio inicial
+        state.folio = generateFolio();
+        const headerFolio = document.getElementById("header-folio");
+        if (headerFolio) headerFolio.textContent = state.folio;
+
+        // 2. Inicializar estado de red y respaldo pendiente
+        updateNetworkStatusUI();
+        checkPendingOfflineBanner();
+        window.addEventListener("online", () => {
+          updateNetworkStatusUI();
+          showToast("Conexión a internet restablecida.", "success");
+        });
+        window.addEventListener("offline", () => {
+          updateNetworkStatusUI();
+          showToast("Se perdió la conexión a internet. Los datos se respaldarán localmente.", "warning");
+        });
+
+        // 3. Inicializar manejadores dinámicos de opciones, máscaras y actividades
+        initDynamicOptionHandlers();
+        initQuickActivityButtons();
+        initInputMasks();
+
+        // 4. Cálculo automático de edad y hacinamiento
+        document.getElementById("fecha_nacimiento").addEventListener("change", handleBirthDateChange);
+        document.getElementById("total_habitantes").addEventListener("input", updateOvercrowdingIndex);
+        document.getElementById("numero_dormitorios").addEventListener("input", updateOvercrowdingIndex);
+
+        // 5. Actualizar barra de progreso en tiempo real
+        const form = document.getElementById("ficha-form");
+        form.addEventListener("input", updateProgressBar);
+        form.addEventListener("change", updateProgressBar);
+
+        // 6. Envío del formulario a Google Sheets
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!validateForm()) {
+            showToast("Revise los campos obligatorios marcados en rojo.", "error");
+            return;
+          }
+          const payload = buildFlatSheetPayload();
+          await sendPayloadToGoogleSheets(payload);
+        });
+
+        // 7. Botones de acciones principales
+        document.getElementById("btn-preview").addEventListener("click", openPreviewModal);
+        document.getElementById("btn-print").addEventListener("click", prepareAndPrintUSLetter);
+        document.getElementById("btn-export-json").addEventListener("click", () => downloadJSONBackup());
+
+        // Limpiar formulario (abre modal de confirmación accesible sin window.confirm)
+        document.getElementById("btn-clear-form").addEventListener("click", () => {
+          document.getElementById("modal-confirm-clear").classList.remove("hidden");
+        });
+        document.getElementById("btn-confirm-clear-yes").addEventListener("click", () => {
+          document.getElementById("modal-confirm-clear").classList.add("hidden");
+          resetFullForm();
+          showToast("El formulario ha sido reiniciado.", "info");
+        });
+
+        // 8. Controles de Modales
+        document.querySelectorAll("[data-close-modal]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const modalId = btn.dataset.closeModal;
+            const modalEl = document.getElementById(modalId);
+            if (modalEl) modalEl.classList.add("hidden");
+          });
+        });
+
+        document.getElementById("btn-modal-print").addEventListener("click", () => {
+          document.getElementById("modal-preview").classList.add("hidden");
+          prepareAndPrintUSLetter();
+        });
+
+        document.getElementById("btn-success-print").addEventListener("click", () => {
+          document.getElementById("modal-success").classList.add("hidden");
+          prepareAndPrintUSLetter();
+        });
+
+        document.getElementById("btn-success-json").addEventListener("click", () => {
+          downloadJSONBackup(state.lastSubmittedPayload);
+        });
+
+        document.getElementById("btn-success-new").addEventListener("click", () => {
+          document.getElementById("modal-success").classList.add("hidden");
+          resetFullForm();
+          showToast("Listo para registrar un nuevo estudiante.", "info");
+        });
+
+        // 9. Reintento desde modal sin conexión o banner pendiente
+        async function retryPendingSubmission() {
+          try {
+            const raw = localStorage.getItem(PENDING_STORAGE_KEY);
+            const payloadToRetry = raw ? JSON.parse(raw) : (state.lastSubmittedPayload || buildFlatSheetPayload());
+            document.getElementById("modal-offline").classList.add("hidden");
+            await sendPayloadToGoogleSheets(payloadToRetry);
+          } catch (err) {
+            showToast("No se pudo recuperar el respaldo pendiente.", "error");
+          }
+        }
+
+        document.getElementById("btn-offline-retry").addEventListener("click", retryPendingSubmission);
+        document.getElementById("btn-retry-banner").addEventListener("click", retryPendingSubmission);
+        document.getElementById("btn-dismiss-banner").addEventListener("click", () => {
+          document.getElementById("pending-backup-banner").classList.add("hidden");
+        });
+
+        document.getElementById("btn-offline-json").addEventListener("click", () => {
+          try {
+            const raw = localStorage.getItem(PENDING_STORAGE_KEY);
+            const payload = raw ? JSON.parse(raw) : state.lastSubmittedPayload;
+            downloadJSONBackup(payload);
+          } catch (err) {
+            downloadJSONBackup();
+          }
+        });
+
+        // 10. Preparar documento US Letter automáticamente si el usuario usa Ctrl+P / Cmd+P
+        window.addEventListener("beforeprint", () => {
+          const data = buildFlatSheetPayload();
+          const sections = getStructuredSectionsForDisplay(data);
+          const printContainer = document.getElementById("print-document");
+          if (printContainer && printContainer.innerHTML.trim() === "") {
+            // Reutilizar construcción sin invocar window.print() recursivamente
+            let html = `
+              <div style="border-bottom: 2px solid #0f2544; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                  <div style="font-size: 8pt; font-weight: 700; color: #1e467d; text-transform: uppercase;">Registro Académico y Bienestar Estudiantil</div>
+                  <h1 style="font-size: 14pt; font-weight: 800; color: #0f2544; margin: 2px 0;">FICHA INTEGRAL DEL ESTUDIANTE — VERSIÓN 1.4</h1>
+                </div>
+                <div style="text-align: right; font-size: 8.5pt;">
+                  <div style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 3px 8px; border-radius: 4px; font-weight: 700;">FOLIO: ${escapeHTML(data.folio)}</div>
+                  <div style="color: #475569; margin-top: 3px;">Fecha: ${escapeHTML(data.fecha_registro_sv)}</div>
+                </div>
+              </div>
+            `;
+            sections.forEach((sec) => {
+              html += `<div class="print-section"><div class="print-section-header">${escapeHTML(sec.title)}</div><div class="print-grid">`;
+              sec.fields.forEach((f) => {
+                html += `<div class="print-cell ${f.full ? "print-cell-full" : ""}"><span class="print-label">${escapeHTML(f.label)}</span><span class="print-value">${escapeHTML(f.value || "--")}</span></div>`;
+              });
+              html += `</div></div>`;
+            });
+            printContainer.innerHTML = html;
+          }
+        });
+
+        updateProgressBar();
+      });
+    })();
+  </script>
+</body>
+</html>
