@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ficha Integral del Estudiante - Versión 1.4</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tipografías institucionales Inter y Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            inst: {
+              navy: '#0f2942',
+              navyLight: '#173b5e',
+              cyan: '#0284c7',
+              cyanDark: '#0369a1',
+              surface: '#f8fafc',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Estilos base institucionales */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    h1, h2, h3, .font-display {
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Transición suave para cajas condicionales de "Otro" / "Otra" / "Sí" */
+    .otro-drawer {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      transition: grid-template-rows 0.24s ease, opacity 0.22s ease, margin-top 0.24s ease;
+      margin-top: 0;
+    }
+
+    .otro-drawer.open {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      margin-top: 0.625rem;
+    }
+
+    .otro-drawer-inner {
+      overflow: hidden;
+    }
+
+    /* Tarjetas interactivas para radio buttons y checkboxes */
+    .choice-pill input:checked + .pill-face {
+      background-color: #f0f9ff;
+      border-color: #0284c7;
+      color: #0f2942;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.14);
+    }
+
+    .choice-pill input:checked + .pill-face .pill-mark {
+      background-color: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+    }
+
+    .choice-pill-muted input:checked + .pill-face {
+      background-color: #f1f5f9;
+      border-color: #475569;
+      color: #1e293b;
+    }
+
+    .choice-pill-muted input:checked + .pill-face .pill-mark {
+      background-color: #475569;
+      border-color: #475569;
+      color: #ffffff;
+    }
+
+    /* =====================================================================
+       REGLAS DE IMPRESIÓN EN TAMAÑO CARTA (US LETTER)
+       ===================================================================== */
+    #print-sheet-container {
+      display: none;
+    }
+
+    @media print {
+      @page {
+        size: letter portrait;
+        margin: 1.1cm 1.3cm;
+      }
+
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      #web-app-shell,
+      #summary-modal,
+      #reset-modal,
+      #toast-container {
+        display: none !important;
+      }
+
+      #print-sheet-container {
+        display: block !important;
+        width: 100%;
+        font-family: 'Inter', sans-serif;
+        font-size: 8.8pt;
+        line-height: 1.32;
+      }
+
+      .print-card {
+        break-inside: avoid;
+        border: 1px solid #cbd5e1;
+        border-radius: 5px;
+        margin-bottom: 8px;
+        overflow: hidden;
+      }
+
+      .print-card-head {
+        background-color: #0f2942 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding: 4px 9px;
+        font-weight: 700;
+        font-size: 8.8pt;
+        letter-spacing: 0.02em;
+      }
+
+      .print-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px 12px;
+        padding: 6px 9px;
+      }
+
+      .print-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px 10px;
+        padding: 6px 9px;
+      }
+
+      .p-item {
+        border-bottom: 1px dotted #cbd5e1;
+        padding-bottom: 2px;
+      }
+
+      .p-item.span-2 {
+        grid-column: span 2;
+      }
+
+      .p-item.span-3 {
+        grid-column: 1 / -1;
+      }
+
+      .p-lbl {
+        display: block;
+        font-size: 6.9pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #475569;
+      }
+
+      .p-val {
+        display: block;
+        font-size: 8.6pt;
+        font-weight: 500;
+        color: #0f172a;
+        min-height: 13px;
+      }
+
+      .print-signatures {
+        break-inside: avoid;
+        margin-top: 24px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 48px;
+        padding: 0 20px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-sky-100 selection:text-inst-navy">
+
+  <!-- =====================================================================
+       INTERFAZ WEB INTERACTIVA
+       ===================================================================== -->
+  <div id="web-app-shell" class="min-h-screen flex flex-col">
+
+    <!-- BARRA SUPERIOR FIJA (STICKY HEADER) -->
+    <header class="sticky top-0 z-40 bg-inst-navy text-white shadow-lg border-b border-slate-700/70">
+      <!-- Barra de progreso de llenado en tiempo real -->
+      <div class="w-full bg-slate-800 h-1.5">
+        <div id="progress-bar" class="bg-gradient-to-r from-sky-400 via-cyan-400 to-teal-300 h-1.5 transition-all duration-300" style="width: 0%;"></div>
+      </div>
+
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <!-- Identidad y versión -->
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-inst-cyan/20 border border-sky-400/40 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-sky-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Ficha Integral del Estudiante</h1>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-inst-cyan text-white shadow-sm">
+                  Versión 1.4
+                </span>
+              </div>
+              <p class="text-xs text-slate-300 hidden sm:block">Instrumento Institucional de Caracterización Estudiantil y Plan de Grado — El Salvador</p>
+            </div>
+          </div>
+
+          <!-- Progreso móvil -->
+          <div class="lg:hidden shrink-0">
+            <span id="progress-badge-mobile" class="text-xs font-bold text-sky-300 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700">0%</span>
+          </div>
+        </div>
+
+        <!-- Botones de acción rápida -->
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="hidden lg:flex items-center gap-1.5 mr-1.5 bg-slate-900/70 px-3 py-1.5 rounded-xl border border-slate-700/80">
+            <span class="text-xs text-slate-300">Avance:</span>
+            <span id="progress-badge-desktop" class="text-xs font-bold text-sky-300">0%</span>
+          </div>
+
+          <button type="button" onclick="openSummaryModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-inst-cyan hover:bg-inst-cyanDark text-white shadow-sm transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            Ver Resumen
+          </button>
+
+          <button type="button" onclick="printFormSheet()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition cursor-pointer">
+            <svg class="w-4 h-4 text-sky-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+            Imprimir / PDF
+          </button>
+
+          <button type="button" onclick="exportToJSON()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition cursor-pointer">
+            <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            Exportar JSON
+          </button>
+
+          <button type="button" onclick="openResetModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-500/20 hover:bg-rose-600 text-rose-100 hover:text-white border border-rose-400/30 transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL DEL FORMULARIO (7 SECCIONES) -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <form id="ficha-form" class="space-y-6" novalidate>
+
+        <!-- ===============================================================
+             SECCIÓN 1: DATOS PERSONALES Y DEMOGRÁFICOS
+             =============================================================== -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy px-5 py-4 flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-inst-cyan text-white flex items-center justify-center shrink-0 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Sección 1 de 7</span>
+              <h2 class="text-base sm:text-lg font-bold text-white leading-tight">Datos Personales y Demográficos</h2>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+            <!-- Nombres completos -->
+            <div class="md:col-span-6">
+              <label for="nombres" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Nombres completos <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="nombres" name="nombres" data-track="true"
+                placeholder="Ej. María Fernanda"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Apellidos completos -->
+            <div class="md:col-span-6">
+              <label for="apellidos" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Apellidos completos <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="apellidos" name="apellidos" data-track="true"
+                placeholder="Ej. Rodríguez Vásquez"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Fecha de nacimiento + Edad automática -->
+            <div class="md:col-span-6">
+              <label for="fechaNacimiento" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Fecha de nacimiento <span class="text-rose-600">*</span>
+              </label>
+              <div class="flex items-center gap-2.5">
+                <input type="date" id="fechaNacimiento" name="fechaNacimiento" data-track="true" onchange="calculateAge()"
+                  class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+                <div class="px-3.5 py-2.5 rounded-xl bg-sky-50 border border-sky-200 text-inst-navy text-sm font-bold whitespace-nowrap" title="Edad calculada automáticamente">
+                  <span id="edadDisplay">— años</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sexo biológico (ÚNICAMENTE Hombre / Mujer) -->
+            <div class="md:col-span-6">
+              <label class="block text-sm font-semibold text-slate-800 mb-0.5">
+                Sexo <span class="text-rose-600">*</span>
+              </label>
+              <p class="text-xs text-slate-500 mb-2">Variable biológica (Hombre / Mujer)</p>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="radio" name="sexo" value="Hombre" class="sr-only" onchange="onFormMutation()" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Hombre</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="radio" name="sexo" value="Mujer" class="sr-only" onchange="onFormMutation()" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Mujer</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Documento de identidad (DUI / NIE / Carnet) -->
+            <div class="md:col-span-6">
+              <label for="documentoIdentidad" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Documento de identidad (DUI / NIE / Carnet) <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="documentoIdentidad" name="documentoIdentidad" data-track="true"
+                placeholder="Ej. 06123456-7 o número de NIE"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Estado Civil (+ Otro dinámico) -->
+            <div class="md:col-span-6">
+              <label for="estadoCivil" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Estado civil <span class="text-rose-600">*</span>
+              </label>
+              <select id="estadoCivil" name="estadoCivil" data-track="true"
+                data-otro-drawer="drawer-estadoCivil" data-otro-input="estadoCivilOtro" data-otro-match="Otro"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar estado civil...</option>
+                <option value="Soltero/a">Soltero/a</option>
+                <option value="Casado/a">Casado/a</option>
+                <option value="Acompañado/a">Acompañado/a</option>
+                <option value="Divorciado/a">Divorciado/a</option>
+                <option value="Viudo/a">Viudo/a</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="drawer-estadoCivil" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="estadoCivilOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Teléfono celular / WhatsApp -->
+            <div class="md:col-span-6">
+              <label for="telefono" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Teléfono celular / WhatsApp <span class="text-rose-600">*</span>
+              </label>
+              <input type="tel" id="telefono" name="telefono" data-track="true"
+                placeholder="Ej. 7890-1234"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Correo electrónico -->
+            <div class="md:col-span-6">
+              <label for="correo" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Correo electrónico
+              </label>
+              <input type="email" id="correo" name="correo" data-track="true"
+                placeholder="Ej. estudiante@clases.edu.sv"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Departamento (14 departamentos de El Salvador) -->
+            <div class="md:col-span-4">
+              <label for="departamento" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Departamento <span class="text-rose-600">*</span>
+              </label>
+              <select id="departamento" name="departamento" data-track="true"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar departamento...</option>
+                <option value="Ahuachapán">Ahuachapán</option>
+                <option value="Cabañas">Cabañas</option>
+                <option value="Chalatenango">Chalatenango</option>
+                <option value="Cuscatlán">Cuscatlán</option>
+                <option value="La Libertad">La Libertad</option>
+                <option value="La Paz">La Paz</option>
+                <option value="La Unión">La Unión</option>
+                <option value="Morazán">Morazán</option>
+                <option value="San Miguel">San Miguel</option>
+                <option value="San Salvador">San Salvador</option>
+                <option value="San Vicente">San Vicente</option>
+                <option value="Santa Ana">Santa Ana</option>
+                <option value="Sonsonate">Sonsonate</option>
+                <option value="Usulután">Usulután</option>
+              </select>
+            </div>
+
+            <!-- Municipio / Distrito -->
+            <div class="md:col-span-4">
+              <label for="municipio" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Municipio / Distrito <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="municipio" name="municipio" data-track="true"
+                placeholder="Ej. Usulután Este / Jiquilisco"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Zona de residencia (+ Otro dinámico) -->
+            <div class="md:col-span-4">
+              <label for="zonaResidencia" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Zona de residencia <span class="text-rose-600">*</span>
+              </label>
+              <select id="zonaResidencia" name="zonaResidencia" data-track="true"
+                data-otro-drawer="drawer-zonaResidencia" data-otro-input="zonaResidenciaOtro" data-otro-match="Otro"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar zona...</option>
+                <option value="Urbana">Urbana</option>
+                <option value="Rural">Rural</option>
+                <option value="Periurbana">Periurbana</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="drawer-zonaResidencia" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="zonaResidenciaOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Dirección exacta -->
+            <div class="md:col-span-12">
+              <label for="direccion" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Dirección exacta <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="direccion" name="direccion" data-track="true"
+                placeholder="Colonia, barrio, cantón, caserío, calle, polígono, número de casa y punto de referencia"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             SECCIÓN 2: DATOS ACADÉMICOS Y PROYECCIÓN DEL PLAN DE GRADO
+             =============================================================== -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy px-5 py-4 flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-inst-cyan text-white flex items-center justify-center shrink-0 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Sección 2 de 7</span>
+              <h2 class="text-base sm:text-lg font-bold text-white leading-tight">Datos Académicos y Proyección del Plan de Grado</h2>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+            <!-- Institución educativa / Facultad -->
+            <div class="md:col-span-6">
+              <label for="institucion" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Institución educativa / Facultad <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="institucion" name="institucion" data-track="true"
+                placeholder="Ej. Instituto Nacional de Usulután (INU) / Facultad de Ciencias de la Salud"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Carrera / Bachillerato Técnico / Especialidad (+ Otro dinámico) -->
+            <div class="md:col-span-6">
+              <label for="carrera" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Carrera / Bachillerato Técnico / Especialidad <span class="text-rose-600">*</span>
+              </label>
+              <select id="carrera" name="carrera" data-track="true"
+                data-otro-drawer="drawer-carrera" data-otro-input="carreraOtro" data-otro-match="Otro"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar carrera o especialidad...</option>
+                <option value="Licenciatura en Enfermería">Licenciatura en Enfermería</option>
+                <option value="Técnico en Enfermería">Técnico en Enfermería</option>
+                <option value="Bachillerato Técnico en Atención Primaria en Salud">Bachillerato Técnico en Atención Primaria en Salud</option>
+                <option value="Bachillerato General">Bachillerato General</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="drawer-carrera" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="carreraOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Año / Ciclo / Sección -->
+            <div class="md:col-span-4">
+              <label for="anioCicloSeccion" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Año / Ciclo / Sección <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="anioCicloSeccion" name="anioCicloSeccion" data-track="true"
+                placeholder="Ej. 2° Año • Sección A / Ciclo I"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Turno (+ Otro dinámico) -->
+            <div class="md:col-span-4">
+              <label for="turno" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Turno <span class="text-rose-600">*</span>
+              </label>
+              <select id="turno" name="turno" data-track="true"
+                data-otro-drawer="drawer-turno" data-otro-input="turnoOtro" data-otro-match="Otro"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar turno...</option>
+                <option value="Matutino">Matutino</option>
+                <option value="Vespertino">Vespertino</option>
+                <option value="Nocturno">Nocturno</option>
+                <option value="Mixto">Mixto</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="drawer-turno" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="turnoOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Condición académica (+ Otro dinámico) -->
+            <div class="md:col-span-4">
+              <label for="condicionAcademica" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Condición <span class="text-rose-600">*</span>
+              </label>
+              <select id="condicionAcademica" name="condicionAcademica" data-track="true"
+                data-otro-drawer="drawer-condicionAcademica" data-otro-input="condicionAcademicaOtro" data-otro-match="Otro"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar condición...</option>
+                <option value="Nuevo ingreso">Nuevo ingreso</option>
+                <option value="Antiguo ingreso">Antiguo ingreso</option>
+                <option value="Reingreso">Reingreso</option>
+                <option value="Traslado">Traslado</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="drawer-condicionAcademica" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="condicionAcademicaOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Proyección principal al egresar / Plan de Grado (+ Otro dinámico) -->
+            <div class="md:col-span-6">
+              <label for="proyeccionPlanGrado" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Proyección principal al egresar / Plan de Grado <span class="text-rose-600">*</span>
+              </label>
+              <select id="proyeccionPlanGrado" name="proyeccionPlanGrado" data-track="true"
+                data-otro-drawer="drawer-proyeccionPlanGrado" data-otro-input="proyeccionPlanGradoOtro" data-otro-match="Otro"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar proyección...</option>
+                <option value="Continuar estudios universitarios">Continuar estudios universitarios</option>
+                <option value="Incorporarse al ámbito laboral">Incorporarse al ámbito laboral</option>
+                <option value="Emprendimiento propio">Emprendimiento propio</option>
+                <option value="Formación técnica especializada">Formación técnica especializada</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="drawer-proyeccionPlanGrado" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="proyeccionPlanGradoOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Apoyo requerido para el Plan de Grado (+ Otro dinámico) -->
+            <div class="md:col-span-6">
+              <label for="apoyoPlanGrado" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Apoyo requerido para el Plan de Grado <span class="text-rose-600">*</span>
+              </label>
+              <select id="apoyoPlanGrado" name="apoyoPlanGrado" data-track="true"
+                data-otro-drawer="drawer-apoyoPlanGrado" data-otro-input="apoyoPlanGradoOtro" data-otro-match="Otro"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar apoyo requerido...</option>
+                <option value="Ninguno">Ninguno</option>
+                <option value="Orientación vocacional/laboral">Orientación vocacional/laboral</option>
+                <option value="Beca o apoyo socioeconómico">Beca o apoyo socioeconómico</option>
+                <option value="Tutoría académica">Tutoría académica</option>
+                <option value="Apoyo psicosocial">Apoyo psicosocial</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="drawer-apoyoPlanGrado" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="apoyoPlanGradoOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             SECCIÓN 3: INFORMACIÓN FAMILIAR Y CONTACTO DE EMERGENCIA
+             =============================================================== -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy px-5 py-4 flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-inst-cyan text-white flex items-center justify-center shrink-0 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Sección 3 de 7</span>
+              <h2 class="text-base sm:text-lg font-bold text-white leading-tight">Información Familiar y Contacto de Emergencia</h2>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+            <!-- Nombre completo del responsable -->
+            <div class="md:col-span-6">
+              <label for="nombreResponsable" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Nombre completo del responsable o contacto de emergencia <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="nombreResponsable" name="nombreResponsable" data-track="true"
+                placeholder="Ej. Ana Gloria Vásquez de Rodríguez"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Parentesco (+ Otro dinámico) -->
+            <div class="md:col-span-6">
+              <label for="parentesco" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Parentesco <span class="text-rose-600">*</span>
+              </label>
+              <select id="parentesco" name="parentesco" data-track="true"
+                data-otro-drawer="drawer-parentesco" data-otro-input="parentescoOtro" data-otro-match="Otro"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar parentesco...</option>
+                <option value="Madre">Madre</option>
+                <option value="Padre">Padre</option>
+                <option value="Hermano/a">Hermano/a</option>
+                <option value="Abuelo/a">Abuelo/a</option>
+                <option value="Cónyuge/Pareja">Cónyuge/Pareja</option>
+                <option value="Tío/a">Tío/a</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="drawer-parentesco" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="parentescoOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Teléfono de emergencia -->
+            <div class="md:col-span-4">
+              <label for="telefonoEmergencia" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Teléfono de emergencia <span class="text-rose-600">*</span>
+              </label>
+              <input type="tel" id="telefonoEmergencia" name="telefonoEmergencia" data-track="true"
+                placeholder="Ej. 7123-4567"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Ocupación del responsable -->
+            <div class="md:col-span-4">
+              <label for="ocupacionResponsable" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Ocupación del responsable
+              </label>
+              <input type="text" id="ocupacionResponsable" name="ocupacionResponsable" data-track="true"
+                placeholder="Ej. Comerciante, docente, enfermera..."
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+            </div>
+
+            <!-- Con quién vive actualmente el estudiante (+ Otro dinámico) -->
+            <div class="md:col-span-4">
+              <label for="conQuienVive" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                ¿Con quién vive actualmente? <span class="text-rose-600">*</span>
+              </label>
+              <select id="conQuienVive" name="conQuienVive" data-track="true"
+                data-otro-drawer="drawer-conQuienVive" data-otro-input="conQuienViveOtro" data-otro-match="Otro"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar convivencia...</option>
+                <option value="Ambos padres">Ambos padres</option>
+                <option value="Solo madre">Solo madre</option>
+                <option value="Solo padre">Solo padre</option>
+                <option value="Abuelos/familiares">Abuelos/familiares</option>
+                <option value="Cónyuge/pareja">Cónyuge/pareja</option>
+                <option value="Vive solo/a">Vive solo/a</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="drawer-conQuienVive" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="conQuienViveOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             SECCIÓN 4: VIVIENDA, SERVICIOS BÁSICOS Y CONDICIONES SOCIOECONÓMICAS (PLAN DE GRADO)
+             =============================================================== -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy px-5 py-4 flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-inst-cyan text-white flex items-center justify-center shrink-0 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Sección 4 de 7 • Plan de Grado</span>
+              <h2 class="text-base sm:text-lg font-bold text-white leading-tight">Vivienda, Servicios Básicos y Condiciones Socioeconómicas</h2>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 space-y-6">
+            <!-- Subbloque A: Características de la vivienda -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+              <!-- Tipo de vivienda (+ Otro dinámico) -->
+              <div class="md:col-span-4">
+                <label for="tipoVivienda" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Tipo de vivienda <span class="text-rose-600">*</span>
+                </label>
+                <select id="tipoVivienda" name="tipoVivienda" data-track="true"
+                  data-otro-drawer="drawer-tipoVivienda" data-otro-input="tipoViviendaOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar tipo...</option>
+                  <option value="Casa independiente">Casa independiente</option>
+                  <option value="Apartamento">Apartamento</option>
+                  <option value="Mesón / pieza">Mesón / pieza</option>
+                  <option value="Vivienda compartida">Vivienda compartida</option>
+                  <option value="Vivienda improvisada / ranchito">Vivienda improvisada / ranchito</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-tipoVivienda" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="tipoViviendaOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tenencia de la vivienda (+ Otro dinámico) -->
+              <div class="md:col-span-4">
+                <label for="tenenciaVivienda" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Tenencia de la vivienda <span class="text-rose-600">*</span>
+                </label>
+                <select id="tenenciaVivienda" name="tenenciaVivienda" data-track="true"
+                  data-otro-drawer="drawer-tenenciaVivienda" data-otro-input="tenenciaViviendaOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar tenencia...</option>
+                  <option value="Propia (pagada)">Propia (pagada)</option>
+                  <option value="Propia (pagándose / hipoteca)">Propia (pagándose / hipoteca)</option>
+                  <option value="Alquilada">Alquilada</option>
+                  <option value="Familiar / prestada">Familiar / prestada</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-tenenciaVivienda" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="tenenciaViviendaOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Material predominante de paredes (+ Otro dinámico) -->
+              <div class="md:col-span-4">
+                <label for="materialParedes" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Material predominante de paredes <span class="text-rose-600">*</span>
+                </label>
+                <select id="materialParedes" name="materialParedes" data-track="true"
+                  data-otro-drawer="drawer-materialParedes" data-otro-input="materialParedesOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar material...</option>
+                  <option value="Sistema mixto (ladrillo / bloque)">Sistema mixto (ladrillo / bloque)</option>
+                  <option value="Adobe">Adobe</option>
+                  <option value="Lámina">Lámina</option>
+                  <option value="Madera">Madera</option>
+                  <option value="Bahareque">Bahareque</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-materialParedes" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="materialParedesOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Número total de personas + Número de dormitorios + Promedio automático -->
+              <div class="md:col-span-4">
+                <label for="personasVivienda" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Total de personas en la vivienda <span class="text-rose-600">*</span>
+                </label>
+                <input type="number" id="personasVivienda" name="personasVivienda" min="1" max="40" data-track="true"
+                  placeholder="Ej. 4" oninput="calculateOvercrowding()"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+              </div>
+
+              <div class="md:col-span-4">
+                <label for="numeroDormitorios" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Número de dormitorios <span class="text-rose-600">*</span>
+                </label>
+                <input type="number" id="numeroDormitorios" name="numeroDormitorios" min="0" max="20" data-track="true"
+                  placeholder="Ej. 2" oninput="calculateOvercrowding()"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+              </div>
+
+              <div class="md:col-span-4 flex flex-col justify-end">
+                <div class="px-3.5 py-2.5 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-600">Promedio personas / dormitorio:</span>
+                  <span id="promedioDormitorioDisplay" class="text-sm font-bold text-inst-navy">—</span>
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200" />
+
+            <!-- Subbloque B: Servicios Básicos (Agua, Energía, Saneamiento, Internet) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+              <!-- Servicio de agua potable (+ Otro dinámico) -->
+              <div class="md:col-span-6">
+                <label for="servicioAgua" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Servicio de agua potable <span class="text-rose-600">*</span>
+                </label>
+                <select id="servicioAgua" name="servicioAgua" data-track="true"
+                  data-otro-drawer="drawer-servicioAgua" data-otro-input="servicioAguaOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar fuente de agua...</option>
+                  <option value="Cañería dentro de la vivienda (ANDA / red local)">Cañería dentro de la vivienda (ANDA / red local)</option>
+                  <option value="Cañería fuera de la vivienda / chorro común">Cañería fuera de la vivienda / chorro común</option>
+                  <option value="Pozo propio o comunitario">Pozo propio o comunitario</option>
+                  <option value="Pipa / camión cisterna">Pipa / camión cisterna</option>
+                  <option value="Río / quebrada / nacimiento">Río / quebrada / nacimiento</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-servicioAgua" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="servicioAguaOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Frecuencia del servicio de agua (+ Otro dinámico) -->
+              <div class="md:col-span-6">
+                <label for="frecuenciaAgua" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Frecuencia del servicio de agua <span class="text-rose-600">*</span>
+                </label>
+                <select id="frecuenciaAgua" name="frecuenciaAgua" data-track="true"
+                  data-otro-drawer="drawer-frecuenciaAgua" data-otro-input="frecuenciaAguaOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar frecuencia...</option>
+                  <option value="Diario (24 horas)">Diario (24 horas)</option>
+                  <option value="Diario (por horas)">Diario (por horas)</option>
+                  <option value="Días alternos">Días alternos</option>
+                  <option value="Una vez por semana">Una vez por semana</option>
+                  <option value="Irregular / escaso">Irregular / escaso</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-frecuenciaAgua" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="frecuenciaAguaOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Energía eléctrica (+ Otro dinámico) -->
+              <div class="md:col-span-4">
+                <label for="energiaElectrica" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Energía eléctrica <span class="text-rose-600">*</span>
+                </label>
+                <select id="energiaElectrica" name="energiaElectrica" data-track="true"
+                  data-otro-drawer="drawer-energiaElectrica" data-otro-input="energiaElectricaOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar suministro...</option>
+                  <option value="Red eléctrica domiciliar (distribuidora)">Red eléctrica domiciliar (distribuidora)</option>
+                  <option value="Panel solar">Panel solar</option>
+                  <option value="Conexión compartida">Conexión compartida</option>
+                  <option value="No dispone">No dispone</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-energiaElectrica" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="energiaElectricaOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Servicio sanitario / saneamiento (+ Otro dinámico) -->
+              <div class="md:col-span-4">
+                <label for="servicioSanitario" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Servicio sanitario / saneamiento <span class="text-rose-600">*</span>
+                </label>
+                <select id="servicioSanitario" name="servicioSanitario" data-track="true"
+                  data-otro-drawer="drawer-servicioSanitario" data-otro-input="servicioSanitarioOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar servicio sanitario...</option>
+                  <option value="Inodoro conectado a alcantarillado">Inodoro conectado a alcantarillado</option>
+                  <option value="Inodoro conectado a fosa séptica">Inodoro conectado a fosa séptica</option>
+                  <option value="Letrina abonera / lavable">Letrina abonera / lavable</option>
+                  <option value="Letrina de hoyo seco">Letrina de hoyo seco</option>
+                  <option value="No dispone">No dispone</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-servicioSanitario" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="servicioSanitarioOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acceso a Internet en el hogar (+ Otro dinámico) -->
+              <div class="md:col-span-4">
+                <label for="accesoInternet" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Acceso a Internet en el hogar <span class="text-rose-600">*</span>
+                </label>
+                <select id="accesoInternet" name="accesoInternet" data-track="true"
+                  data-otro-drawer="drawer-accesoInternet" data-otro-input="accesoInternetOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar conectividad...</option>
+                  <option value="Internet residencial fijo (fibra / cable)">Internet residencial fijo (fibra / cable)</option>
+                  <option value="Datos móviles propios">Datos móviles propios</option>
+                  <option value="Internet compartido (familiar / vecino)">Internet compartido (familiar / vecino)</option>
+                  <option value="No cuenta con internet en casa">No cuenta con internet en casa</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-accesoInternet" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="accesoInternetOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dispositivos tecnológicos disponibles para estudiar (Checkbox múltiple + Otro dinámico + Ninguno propio) -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-800 mb-1">
+                Dispositivos tecnológicos disponibles para estudiar <span class="text-rose-600">*</span>
+              </label>
+              <p class="text-xs text-slate-500 mb-2.5">Selecciona todos los dispositivos con los que cuentas para realizar tus tareas.</p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" name="dispositivos" value="Computadora de escritorio" class="sr-only disp-item" onchange="handleMultiGroup(this, '.disp-item', 'disp-none', 'disp-otro', 'drawer-dispositivos', 'dispositivosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Computadora de escritorio</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" name="dispositivos" value="Laptop" class="sr-only disp-item" onchange="handleMultiGroup(this, '.disp-item', 'disp-none', 'disp-otro', 'drawer-dispositivos', 'dispositivosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Laptop</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" name="dispositivos" value="Tablet" class="sr-only disp-item" onchange="handleMultiGroup(this, '.disp-item', 'disp-none', 'disp-otro', 'drawer-dispositivos', 'dispositivosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Tablet</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" name="dispositivos" value="Teléfono inteligente (Smartphone)" class="sr-only disp-item" onchange="handleMultiGroup(this, '.disp-item', 'disp-none', 'disp-otro', 'drawer-dispositivos', 'dispositivosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Teléfono inteligente (Smartphone)</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill-muted cursor-pointer select-none">
+                  <input type="checkbox" id="disp-none" name="dispositivos" value="Ninguno propio" class="sr-only" onchange="handleMultiGroup(this, '.disp-item', 'disp-none', 'disp-otro', 'drawer-dispositivos', 'dispositivosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-slate-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Ninguno propio</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" id="disp-otro" name="dispositivos" value="Otro" class="sr-only disp-item" onchange="handleMultiGroup(this, '.disp-item', 'disp-none', 'disp-otro', 'drawer-dispositivos', 'dispositivosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Otro</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+              </div>
+
+              <div id="drawer-dispositivos" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="dispositivosOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200" />
+
+            <!-- Subbloque C: Situación económica y traslado -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+              <!-- Situación laboral del estudiante (+ Otro dinámico) -->
+              <div class="md:col-span-4">
+                <label for="situacionLaboral" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Situación laboral del estudiante <span class="text-rose-600">*</span>
+                </label>
+                <select id="situacionLaboral" name="situacionLaboral" data-track="true"
+                  data-otro-drawer="drawer-situacionLaboral" data-otro-input="situacionLaboralOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar situación...</option>
+                  <option value="Solo estudia">Solo estudia</option>
+                  <option value="Estudia y trabaja medio tiempo">Estudia y trabaja medio tiempo</option>
+                  <option value="Estudia y trabaja tiempo completo">Estudia y trabaja tiempo completo</option>
+                  <option value="Emprendimiento / cuenta propia">Emprendimiento / cuenta propia</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-situacionLaboral" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="situacionLaboralOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Principal sostén económico (+ Otro dinámico) -->
+              <div class="md:col-span-4">
+                <label for="sostenEconomico" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Principal sostén económico de sus estudios <span class="text-rose-600">*</span>
+                </label>
+                <select id="sostenEconomico" name="sostenEconomico" data-track="true"
+                  data-otro-drawer="drawer-sostenEconomico" data-otro-input="sostenEconomicoOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar sostén...</option>
+                  <option value="Padres (ambos)">Padres (ambos)</option>
+                  <option value="Solo madre">Solo madre</option>
+                  <option value="Solo padre">Solo padre</option>
+                  <option value="El mismo estudiante">El mismo estudiante</option>
+                  <option value="Beca institucional / externa">Beca institucional / externa</option>
+                  <option value="Otro familiar">Otro familiar</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-sostenEconomico" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="sostenEconomicoOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ingreso familiar mensual aproximado -->
+              <div class="md:col-span-4">
+                <label for="ingresoFamiliar" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Ingreso familiar mensual aproximado
+                </label>
+                <select id="ingresoFamiliar" name="ingresoFamiliar" data-track="true"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar rango...</option>
+                  <option value="Menos de $365">Menos de $365</option>
+                  <option value="De $365 a $500">De $365 a $500</option>
+                  <option value="De $501 a $800">De $501 a $800</option>
+                  <option value="De $801 a $1,200">De $801 a $1,200</option>
+                  <option value="Más de $1,200">Más de $1,200</option>
+                  <option value="Prefiere no responder">Prefiere no responder</option>
+                </select>
+              </div>
+
+              <!-- Medio de transporte habitual (+ Otro dinámico) -->
+              <div class="md:col-span-6">
+                <label for="medioTransporte" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Medio de transporte habitual hacia la institución <span class="text-rose-600">*</span>
+                </label>
+                <select id="medioTransporte" name="medioTransporte" data-track="true"
+                  data-otro-drawer="drawer-medioTransporte" data-otro-input="medioTransporteOtro" data-otro-match="Otro"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar medio de transporte...</option>
+                  <option value="Transporte público (bus / microbús)">Transporte público (bus / microbús)</option>
+                  <option value="Vehículo propio o familiar">Vehículo propio o familiar</option>
+                  <option value="Motocicleta">Motocicleta</option>
+                  <option value="A pie / caminando">A pie / caminando</option>
+                  <option value="Transporte escolar / privado">Transporte escolar / privado</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div id="drawer-medioTransporte" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="medioTransporteOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tiempo estimado de traslado (ida) -->
+              <div class="md:col-span-6">
+                <label for="tiempoTraslado" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Tiempo estimado de traslado (ida) <span class="text-rose-600">*</span>
+                </label>
+                <select id="tiempoTraslado" name="tiempoTraslado" data-track="true"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar tiempo de traslado...</option>
+                  <option value="Menos de 15 min">Menos de 15 min</option>
+                  <option value="15 a 30 min">15 a 30 min</option>
+                  <option value="31 a 60 min">31 a 60 min</option>
+                  <option value="Más de 1 hora">Más de 1 hora</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             SECCIÓN 5: SALUD BÁSICA Y BIENESTAR
+             =============================================================== -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy px-5 py-4 flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-inst-cyan text-white flex items-center justify-center shrink-0 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Sección 5 de 7</span>
+              <h2 class="text-base sm:text-lg font-bold text-white leading-tight">Salud Básica y Bienestar</h2>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+            <!-- Grupo sanguíneo y Rh -->
+            <div class="md:col-span-6">
+              <label for="grupoSanguineo" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Grupo sanguíneo y Rh <span class="text-rose-600">*</span>
+              </label>
+              <select id="grupoSanguineo" name="grupoSanguineo" data-track="true"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar tipo de sangre...</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="No sabe">No sabe</option>
+              </select>
+            </div>
+
+            <!-- Enfermedad crónica o condición diagnosticada (+ Otra dinámico) -->
+            <div class="md:col-span-6">
+              <label for="enfermedadCronica" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Enfermedad crónica o condición diagnosticada <span class="text-rose-600">*</span>
+              </label>
+              <select id="enfermedadCronica" name="enfermedadCronica" data-track="true"
+                data-otro-drawer="drawer-enfermedadCronica" data-otro-input="enfermedadCronicaOtro" data-otro-match="Otra"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar condición...</option>
+                <option value="Ninguna">Ninguna</option>
+                <option value="Asma">Asma</option>
+                <option value="Diabetes">Diabetes</option>
+                <option value="Hipertensión arterial">Hipertensión arterial</option>
+                <option value="Epilepsia">Epilepsia</option>
+                <option value="Migraña">Migraña</option>
+                <option value="Ansiedad / Depresión">Ansiedad / Depresión</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div id="drawer-enfermedadCronica" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="enfermedadCronicaOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Alergias conocidas (+ Otra dinámico) -->
+            <div class="md:col-span-6">
+              <label for="alergias" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Alergias conocidas <span class="text-rose-600">*</span>
+              </label>
+              <select id="alergias" name="alergias" data-track="true"
+                data-otro-drawer="drawer-alergias" data-otro-input="alergiasOtro" data-otro-match="Otra"
+                onchange="handleSelectOtro(this)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                <option value="">Seleccionar alergias...</option>
+                <option value="Ninguna">Ninguna</option>
+                <option value="Medicamentos / antibióticos">Medicamentos / antibióticos</option>
+                <option value="Alimentos">Alimentos</option>
+                <option value="Polvo / ambientales">Polvo / ambientales</option>
+                <option value="Otra">Otra</option>
+              </select>
+              <div id="drawer-alergias" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="alergiasOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Medicamento de uso continuo (No / Sí -> abre textbox nombre y horario) -->
+            <div class="md:col-span-6">
+              <label class="block text-sm font-semibold text-slate-800 mb-1.5">
+                Medicamento de uso continuo <span class="text-rose-600">*</span>
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="choice-pill-muted cursor-pointer select-none">
+                  <input type="radio" name="medicamentoContinuo" value="No" class="sr-only"
+                    onchange="handleRadioOtro(this, 'drawer-medicamentoContinuo', 'medicamentoContinuoDetalle', 'Sí')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-slate-400 transition">
+                    <span class="text-sm font-semibold">No</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="radio" name="medicamentoContinuo" value="Sí" class="sr-only"
+                    onchange="handleRadioOtro(this, 'drawer-medicamentoContinuo', 'medicamentoContinuoDetalle', 'Sí')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Sí</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+              </div>
+              <div id="drawer-medicamentoContinuo" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="medicamentoContinuoDetalle" placeholder="Especifique cuál (nombre del medicamento y horario)..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             SECCIÓN 6: HABILIDADES, MÚSICA Y DEPORTE
+             =============================================================== -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy px-5 py-4 flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-inst-cyan text-white flex items-center justify-center shrink-0 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Sección 6 de 7</span>
+              <h2 class="text-base sm:text-lg font-bold text-white leading-tight">Habilidades, Música y Deporte</h2>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 space-y-6">
+            <!-- Habilidades musicales / instrumentos -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-800 mb-1">
+                Habilidades musicales / instrumentos <span class="text-rose-600">*</span>
+              </label>
+              <p class="text-xs text-slate-500 mb-2.5">Puedes seleccionar varias opciones. Marcar "Ninguno" desactiva las demás.</p>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" name="instrumentos" value="Piano" class="sr-only inst-item" onchange="handleMultiGroup(this, '.inst-item', 'inst-none', 'inst-otro', 'drawer-instrumentos', 'instrumentosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Piano</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" name="instrumentos" value="Guitarra" class="sr-only inst-item" onchange="handleMultiGroup(this, '.inst-item', 'inst-none', 'inst-otro', 'drawer-instrumentos', 'instrumentosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Guitarra</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" id="inst-otro" name="instrumentos" value="Otro" class="sr-only inst-item" onchange="handleMultiGroup(this, '.inst-item', 'inst-none', 'inst-otro', 'drawer-instrumentos', 'instrumentosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Otro</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill-muted cursor-pointer select-none">
+                  <input type="checkbox" id="inst-none" name="instrumentos" value="Ninguno" class="sr-only" onchange="handleMultiGroup(this, '.inst-item', 'inst-none', 'inst-otro', 'drawer-instrumentos', 'instrumentosOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-slate-400 transition">
+                    <span class="text-sm font-semibold">Ninguno</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+              </div>
+
+              <div id="drawer-instrumentos" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="instrumentosOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <hr class="border-slate-200" />
+
+            <!-- Deportes que practica -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-800 mb-1">
+                Deportes que practica <span class="text-rose-600">*</span>
+              </label>
+              <p class="text-xs text-slate-500 mb-2.5">Puedes seleccionar varios deportes. Marcar "Ninguno" desactiva las demás.</p>
+
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" name="deportes" value="Fútbol" class="sr-only dep-item" onchange="handleMultiGroup(this, '.dep-item', 'dep-none', 'dep-otro', 'drawer-deportes', 'deportesOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Fútbol</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" name="deportes" value="Básquetbol" class="sr-only dep-item" onchange="handleMultiGroup(this, '.dep-item', 'dep-none', 'dep-otro', 'drawer-deportes', 'deportesOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Básquetbol</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" name="deportes" value="Sóftbol" class="sr-only dep-item" onchange="handleMultiGroup(this, '.dep-item', 'dep-none', 'dep-otro', 'drawer-deportes', 'deportesOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Sóftbol</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="checkbox" id="dep-otro" name="deportes" value="Otro" class="sr-only dep-item" onchange="handleMultiGroup(this, '.dep-item', 'dep-none', 'dep-otro', 'drawer-deportes', 'deportesOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-sm font-semibold">Otro</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill-muted cursor-pointer select-none col-span-2 sm:col-span-1">
+                  <input type="checkbox" id="dep-none" name="deportes" value="Ninguno" class="sr-only" onchange="handleMultiGroup(this, '.dep-item', 'dep-none', 'dep-otro', 'drawer-deportes', 'deportesOtro')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-slate-400 transition">
+                    <span class="text-sm font-semibold">Ninguno</span>
+                    <span class="pill-mark w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">✓</span>
+                  </div>
+                </label>
+              </div>
+
+              <div id="drawer-deportes" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="deportesOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             SECCIÓN 7: AFILIACIÓN RELIGIOSA Y PARTICIPACIÓN COMUNITARIA
+             =============================================================== -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy px-5 py-4 flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-inst-cyan text-white flex items-center justify-center shrink-0 shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+            </div>
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-sky-300">Sección 7 de 7</span>
+              <h2 class="text-base sm:text-lg font-bold text-white leading-tight">Afiliación Religiosa y Participación Comunitaria</h2>
+            </div>
+          </div>
+
+          <div class="p-5 sm:p-6 space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
+              <!-- Religión que profesa (+ Otra dinámico) -->
+              <div class="md:col-span-6">
+                <label for="religion" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Religión que profesa <span class="text-rose-600">*</span>
+                </label>
+                <select id="religion" name="religion" data-track="true"
+                  data-otro-drawer="drawer-religion" data-otro-input="religionOtro" data-otro-match="Otra"
+                  onchange="handleSelectOtro(this)"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition">
+                  <option value="">Seleccionar religión...</option>
+                  <option value="Católica">Católica</option>
+                  <option value="Evangélica / Protestante">Evangélica / Protestante</option>
+                  <option value="Adventista">Adventista</option>
+                  <option value="Testigos de Jehová">Testigos de Jehová</option>
+                  <option value="Mormona (SUD)">Mormona (SUD)</option>
+                  <option value="Ninguna / Sin afiliación">Ninguna / Sin afiliación</option>
+                  <option value="Otra">Otra</option>
+                </select>
+                <div id="drawer-religion" class="otro-drawer">
+                  <div class="otro-drawer-inner">
+                    <input type="text" id="religionOtro" placeholder="Especifique cuál..."
+                      class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Nombre de la iglesia o congregación -->
+              <div class="md:col-span-6">
+                <label for="nombreIglesia" class="block text-sm font-semibold text-slate-800 mb-1.5">
+                  Nombre de la iglesia o congregación a la que asiste
+                </label>
+                <input type="text" id="nombreIglesia" name="nombreIglesia" data-track="true"
+                  placeholder="Ej. Parroquia Santa Catarina, Iglesia Asambleas de Dios..."
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition" />
+              </div>
+            </div>
+
+            <!-- Frecuencia de asistencia (+ Otra frecuencia dinámico) -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-800 mb-2">
+                Frecuencia de asistencia <span class="text-rose-600">*</span>
+              </label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="radio" name="frecuenciaIglesia" value="Varias veces por semana" class="sr-only"
+                    onchange="handleRadioOtro(this, 'drawer-frecuenciaIglesia', 'frecuenciaIglesiaOtro', 'Otra frecuencia')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Varias veces por semana</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="radio" name="frecuenciaIglesia" value="Una vez por semana" class="sr-only"
+                    onchange="handleRadioOtro(this, 'drawer-frecuenciaIglesia', 'frecuenciaIglesiaOtro', 'Otra frecuencia')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Una vez por semana</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="radio" name="frecuenciaIglesia" value="Cada quince días / Una vez al mes" class="sr-only"
+                    onchange="handleRadioOtro(this, 'drawer-frecuenciaIglesia', 'frecuenciaIglesiaOtro', 'Otra frecuencia')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Cada quince días / Una vez al mes</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="radio" name="frecuenciaIglesia" value="Ocasionalmente" class="sr-only"
+                    onchange="handleRadioOtro(this, 'drawer-frecuenciaIglesia', 'frecuenciaIglesiaOtro', 'Otra frecuencia')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Ocasionalmente</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill-muted cursor-pointer select-none">
+                  <input type="radio" name="frecuenciaIglesia" value="No asisto" class="sr-only"
+                    onchange="handleRadioOtro(this, 'drawer-frecuenciaIglesia', 'frecuenciaIglesiaOtro', 'Otra frecuencia')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-slate-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">No asisto</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+
+                <label class="choice-pill cursor-pointer select-none">
+                  <input type="radio" name="frecuenciaIglesia" value="Otra frecuencia" class="sr-only"
+                    onchange="handleRadioOtro(this, 'drawer-frecuenciaIglesia', 'frecuenciaIglesiaOtro', 'Otra frecuencia')" />
+                  <div class="pill-face flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:border-sky-400 transition">
+                    <span class="text-xs sm:text-sm font-medium">Otra frecuencia</span>
+                    <span class="pill-mark w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-transparent">●</span>
+                  </div>
+                </label>
+              </div>
+
+              <div id="drawer-frecuenciaIglesia" class="otro-drawer">
+                <div class="otro-drawer-inner">
+                  <input type="text" id="frecuenciaIglesiaOtro" placeholder="Especifique cuál..."
+                    class="w-full px-3.5 py-2 rounded-xl border border-sky-300 bg-sky-50/50 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Actividades que realiza o practica dentro de su iglesia o comunidad -->
+            <div>
+              <label for="actividadesIglesia" class="block text-sm font-semibold text-slate-800 mb-1">
+                Actividades que realiza o practica dentro de su iglesia o comunidad
+              </label>
+              <p class="text-xs text-slate-500 mb-2">Toca las etiquetas rápidas para agregarlas o escribe libremente:</p>
+
+              <div class="flex flex-wrap gap-1.5 mb-2.5">
+                <button type="button" onclick="appendActivityTag('Grupo de jóvenes')" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 hover:bg-sky-100 text-inst-navy border border-sky-200 transition cursor-pointer">+ Grupo de jóvenes</button>
+                <button type="button" onclick="appendActivityTag('Grupo de alabanza / coro')" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 hover:bg-sky-100 text-inst-navy border border-sky-200 transition cursor-pointer">+ Grupo de alabanza / coro</button>
+                <button type="button" onclick="appendActivityTag('Servicio social / voluntariado')" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 hover:bg-sky-100 text-inst-navy border border-sky-200 transition cursor-pointer">+ Servicio social / voluntariado</button>
+                <button type="button" onclick="appendActivityTag('Catequesis / escuela dominical')" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 hover:bg-sky-100 text-inst-navy border border-sky-200 transition cursor-pointer">+ Catequesis / escuela dominical</button>
+                <button type="button" onclick="appendActivityTag('Liderazgo juvenil')" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 hover:bg-sky-100 text-inst-navy border border-sky-200 transition cursor-pointer">+ Liderazgo juvenil</button>
+              </div>
+
+              <textarea id="actividadesIglesia" name="actividadesIglesia" rows="3"
+                placeholder="Describe las actividades en las que participas dentro de tu iglesia o comunidad..."
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-inst-cyan focus:ring-2 focus:ring-sky-500/20 outline-none text-sm transition"></textarea>
+            </div>
+
+            <!-- Botón final de vista previa e impresión -->
+            <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p class="text-xs text-slate-500 text-center sm:text-left">
+                Tus respuestas se guardan automáticamente como borrador local en este dispositivo.
+              </p>
+              <button type="button" onclick="openSummaryModal()"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-display font-bold bg-inst-navy hover:bg-inst-navyLight text-white shadow-md hover:shadow-lg transition cursor-pointer shrink-0">
+                <svg class="w-5 h-5 text-sky-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Ver Resumen y Generar PDF (v1.4)
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </form>
+    </main>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="bg-white border-t border-slate-200 mt-6">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-center sm:text-left">
+          <p class="text-xs font-bold text-inst-navy">Ficha Integral del Estudiante — Versión 1.4</p>
+          <p class="text-[11px] text-slate-500">Sistema de Caracterización Estudiantil y Plan de Grado • El Salvador</p>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <button type="button" onclick="openSummaryModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-inst-cyan hover:bg-inst-cyanDark text-white transition cursor-pointer">Ver Resumen</button>
+          <button type="button" onclick="printFormSheet()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-inst-navy hover:bg-inst-navyLight text-white transition cursor-pointer">Imprimir / PDF</button>
+          <button type="button" onclick="exportToJSON()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition cursor-pointer">Exportar JSON</button>
+          <button type="button" onclick="openResetModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">Limpiar</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- =====================================================================
+       MODAL DE RESUMEN CONSOLIDADO
+       ===================================================================== -->
+  <div id="summary-modal" class="fixed inset-0 z-50 hidden bg-slate-950/75 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-4">
+      <div class="bg-inst-navy text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base sm:text-lg font-bold">Resumen Consolidado — Ficha Integral del Estudiante</h3>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-inst-cyan text-white">Versión 1.4</span>
+          </div>
+          <p class="text-xs text-slate-300">Revisión completa de las 7 secciones antes de imprimir en tamaño carta o exportar</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="printFormSheet()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-inst-cyan hover:bg-inst-cyanDark text-white transition cursor-pointer">
+            Imprimir / PDF
+          </button>
+          <button type="button" onclick="exportToJSON()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition cursor-pointer">
+            Exportar JSON
+          </button>
+          <button type="button" onclick="closeSummaryModal()" class="p-2 rounded-xl bg-white/10 hover:bg-rose-600 text-white transition cursor-pointer" title="Cerrar">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <div id="summary-modal-body" class="p-5 sm:p-6 space-y-5 max-h-[75vh] overflow-y-auto text-sm">
+        <!-- Renderizado dinámicamente -->
+      </div>
+
+      <div class="bg-slate-50 px-5 py-3.5 border-t border-slate-200 flex justify-end gap-2">
+        <button type="button" onclick="closeSummaryModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 hover:bg-slate-300 text-slate-800 transition cursor-pointer">
+          Volver a Editar
+        </button>
+        <button type="button" onclick="printFormSheet()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-inst-navy hover:bg-inst-navyLight text-white transition cursor-pointer">
+          Imprimir / Guardar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODAL DE CONFIRMACIÓN PARA LIMPIAR FORMULARIO
+       ===================================================================== -->
+  <div id="reset-modal" class="fixed inset-0 z-50 hidden bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="w-11 h-11 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900">¿Limpiar toda la ficha?</h3>
+      <p class="text-sm text-slate-600 mt-1.5">
+        Se restablecerán todos los campos de las 7 secciones y se eliminará el borrador autoguardado en este navegador.
+      </p>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button type="button" onclick="closeResetModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 transition cursor-pointer">
+          Cancelar
+        </button>
+        <button type="button" onclick="confirmResetForm()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition cursor-pointer">
+          Sí, limpiar todo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIONES FLOTANTES -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- =====================================================================
+       HOJA DE IMPRESIÓN FORMAL EN TAMAÑO CARTA (VISIBLE EN @media print)
+       ===================================================================== -->
+  <div id="print-sheet-container"></div>
+
+  <!-- =====================================================================
+       LÓGICA JAVASCRIPT DE LA APLICACIÓN v1.4
+       ===================================================================== -->
+  <script>
+    const STORAGE_KEY = 'ficha_integral_estudiante_v1_4';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFromLocalStorage();
+      updateProgress();
+      renderPrintSheet();
+
+      const form = document.getElementById('ficha-form');
+      form.addEventListener('input', onFormMutation);
+      form.addEventListener('change', onFormMutation);
+    });
+
+    function onFormMutation() {
+      updateProgress();
+      saveToLocalStorage();
+    }
+
+    /**
+     * =====================================================================
+     * MOTOR UNIVERSAL PARA CAMPOS DINÁMICOS "OTRO" / "OTRA" / "SÍ"
+     * =====================================================================
+     */
+    function toggleOtroDrawer(drawerId, inputId, shouldOpen, autoFocus = true) {
+      const drawer = document.getElementById(drawerId);
+      const input = document.getElementById(inputId);
+      if (!drawer || !input) return;
+
+      if (shouldOpen) {
+        drawer.classList.add('open');
+        if (autoFocus) {
+          setTimeout(() => input.focus(), 90);
+        }
+      } else {
+        drawer.classList.remove('open');
+        input.value = '';
+      }
+    }
+
+    // Controlador para elementos <select> con opción "Otro" / "Otra"
+    function handleSelectOtro(selectEl, autoFocus = true) {
+      const drawerId = selectEl.getAttribute('data-otro-drawer');
+      const inputId = selectEl.getAttribute('data-otro-input');
+      const matchVal = selectEl.getAttribute('data-otro-match') || 'Otro';
+      toggleOtroDrawer(drawerId, inputId, selectEl.value === matchVal, autoFocus);
+      onFormMutation();
+    }
+
+    // Controlador para grupos <input type="radio"> con opción "Otro" / "Otra frecuencia" / "Sí"
+    function handleRadioOtro(radioEl, drawerId, inputId, matchVal, autoFocus = true) {
+      toggleOtroDrawer(drawerId, inputId, radioEl.checked && radioEl.value === matchVal, autoFocus);
+      onFormMutation();
+    }
+
+    // Controlador para grupos <input type="checkbox"> con exclusión mutua ("Ninguno") y opción "Otro"
+    function handleMultiGroup(changedCb, itemSelector, noneId, otroId, drawerId, inputId, autoFocus = true) {
+      const noneCb = document.getElementById(noneId);
+      const otroCb = document.getElementById(otroId);
+
+      if (changedCb === noneCb && noneCb.checked) {
+        document.querySelectorAll(itemSelector).forEach(cb => {
+          cb.checked = false;
+        });
+      } else if (changedCb !== noneCb && changedCb.checked && noneCb) {
+        noneCb.checked = false;
+      }
+
+      toggleOtroDrawer(drawerId, inputId, otroCb && otroCb.checked, autoFocus);
+      onFormMutation();
+    }
+
+    /**
+     * Combina cualquier valor "Otro" / "Otra" / "Otra frecuencia" / "Sí" con su detalle escrito
+     */
+    function combineOtro(baseValue, otroText, triggerWords = ['Otro', 'Otra', 'Otra frecuencia', 'Sí']) {
+      if (!baseValue) return '';
+      const cleanOtro = (otroText || '').trim();
+      if (triggerWords.includes(baseValue) && cleanOtro) {
+        return `${baseValue}: ${cleanOtro}`;
+      }
+      return baseValue;
+    }
+
+    /**
+     * Cálculo automático de edad en años a partir de fechaNacimiento
+     */
+    function calculateAge() {
+      const val = document.getElementById('fechaNacimiento').value;
+      const badge = document.getElementById('edadDisplay');
+      if (!val) {
+        badge.textContent = '— años';
+        return '';
+      }
+      const birth = new Date(val + 'T00:00:00');
+      const now = new Date();
+      let age = now.getFullYear() - birth.getFullYear();
+      const m = now.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
+        age--;
+      }
+      if (age >= 0 && age < 120) {
+        badge.textContent = `${age} años`;
+        return `${age} años`;
+      }
+      badge.textContent = '— años';
+      return '';
+    }
+
+    /**
+     * Cálculo automático de personas por dormitorio
+     */
+    function calculateOvercrowding() {
+      const personas = parseFloat(document.getElementById('personasVivienda').value);
+      const dormitorios = parseFloat(document.getElementById('numeroDormitorios').value);
+      const display = document.getElementById('promedioDormitorioDisplay');
+
+      if (!personas || personas <= 0 || isNaN(dormitorios) || dormitorios < 0) {
+        display.textContent = '—';
+        return '';
+      }
+      if (dormitorios === 0) {
+        display.textContent = `${personas} pers. (sin dormitorio separado)`;
+        return `${personas} personas (0 dormitorios)`;
+      }
+      const avg = (personas / dormitorios).toFixed(1);
+      display.textContent = `${avg} pers./dorm.`;
+      return `${avg} personas por dormitorio`;
+    }
+
+    /**
+     * Agrega etiquetas rápidas al textarea de actividades religiosas/comunitarias
+     */
+    function appendActivityTag(tag) {
+      const ta = document.getElementById('actividadesIglesia');
+      const current = ta.value.trim();
+      if (!current) {
+        ta.value = tag;
+      } else if (!current.toLowerCase().includes(tag.toLowerCase())) {
+        ta.value = `${current}, ${tag}`;
+      }
+      onFormMutation();
+    }
+
+    /**
+     * Recopila todos los datos estructurados de las 7 secciones
+     */
+    function getFormData() {
+      const sexoRadio = document.querySelector('input[name="sexo"]:checked');
+      const medRadio = document.querySelector('input[name="medicamentoContinuo"]:checked');
+      const freqIglesiaRadio = document.querySelector('input[name="frecuenciaIglesia"]:checked');
+
+      // Dispositivos tecnológicos
+      const dispRaw = Array.from(document.querySelectorAll('input[name="dispositivos"]:checked')).map(c => c.value);
+      const dispOtro = document.getElementById('dispositivosOtro').value.trim();
+      const dispResolved = dispRaw.map(v => v === 'Otro' && dispOtro ? `Otro: ${dispOtro}` : v);
+
+      // Instrumentos musicales
+      const instRaw = Array.from(document.querySelectorAll('input[name="instrumentos"]:checked')).map(c => c.value);
+      const instOtro = document.getElementById('instrumentosOtro').value.trim();
+      const instResolved = instRaw.map(v => v === 'Otro' && instOtro ? `Otro: ${instOtro}` : v);
+
+      // Deportes
+      const depRaw = Array.from(document.querySelectorAll('input[name="deportes"]:checked')).map(c => c.value);
+      const depOtro = document.getElementById('deportesOtro').value.trim();
+      const depResolved = depRaw.map(v => v === 'Otro' && depOtro ? `Otro: ${depOtro}` : v);
+
+      const estadoCivilRaw = document.getElementById('estadoCivil').value;
+      const estadoCivilOtro = document.getElementById('estadoCivilOtro').value.trim();
+
+      const zonaRaw = document.getElementById('zonaResidencia').value;
+      const zonaOtro = document.getElementById('zonaResidenciaOtro').value.trim();
+
+      const carreraRaw = document.getElementById('carrera').value;
+      const carreraOtro = document.getElementById('carreraOtro').value.trim();
+
+      const turnoRaw = document.getElementById('turno').value;
+      const turnoOtro = document.getElementById('turnoOtro').value.trim();
+
+      const condAcadRaw = document.getElementById('condicionAcademica').value;
+      const condAcadOtro = document.getElementById('condicionAcademicaOtro').value.trim();
+
+      const proyRaw = document.getElementById('proyeccionPlanGrado').value;
+      const proyOtro = document.getElementById('proyeccionPlanGradoOtro').value.trim();
+
+      const apoyoRaw = document.getElementById('apoyoPlanGrado').value;
+      const apoyoOtro = document.getElementById('apoyoPlanGradoOtro').value.trim();
+
+      const parentescoRaw = document.getElementById('parentesco').value;
+      const parentescoOtro = document.getElementById('parentescoOtro').value.trim();
+
+      const conQuienRaw = document.getElementById('conQuienVive').value;
+      const conQuienOtro = document.getElementById('conQuienViveOtro').value.trim();
+
+      const tipoVivRaw = document.getElementById('tipoVivienda').value;
+      const tipoVivOtro = document.getElementById('tipoViviendaOtro').value.trim();
+
+      const tenenciaRaw = document.getElementById('tenenciaVivienda').value;
+      const tenenciaOtro = document.getElementById('tenenciaViviendaOtro').value.trim();
+
+      const paredesRaw = document.getElementById('materialParedes').value;
+      const paredesOtro = document.getElementById('materialParedesOtro').value.trim();
+
+      const aguaRaw = document.getElementById('servicioAgua').value;
+      const aguaOtro = document.getElementById('servicioAguaOtro').value.trim();
+
+      const freqAguaRaw = document.getElementById('frecuenciaAgua').value;
+      const freqAguaOtro = document.getElementById('frecuenciaAguaOtro').value.trim();
+
+      const energiaRaw = document.getElementById('energiaElectrica').value;
+      const energiaOtro = document.getElementById('energiaElectricaOtro').value.trim();
+
+      const sanitarioRaw = document.getElementById('servicioSanitario').value;
+      const sanitarioOtro = document.getElementById('servicioSanitarioOtro').value.trim();
+
+      const internetRaw = document.getElementById('accesoInternet').value;
+      const internetOtro = document.getElementById('accesoInternetOtro').value.trim();
+
+      const laboralRaw = document.getElementById('situacionLaboral').value;
+      const laboralOtro = document.getElementById('situacionLaboralOtro').value.trim();
+
+      const sostenRaw = document.getElementById('sostenEconomico').value;
+      const sostenOtro = document.getElementById('sostenEconomicoOtro').value.trim();
+
+      const transpRaw = document.getElementById('medioTransporte').value;
+      const transpOtro = document.getElementById('medioTransporteOtro').value.trim();
+
+      const enfRaw = document.getElementById('enfermedadCronica').value;
+      const enfOtro = document.getElementById('enfermedadCronicaOtro').value.trim();
+
+      const alergiasRaw = document.getElementById('alergias').value;
+      const alergiasOtro = document.getElementById('alergiasOtro').value.trim();
+
+      const medVal = medRadio ? medRadio.value : '';
+      const medDetalle = document.getElementById('medicamentoContinuoDetalle').value.trim();
+
+      const religionRaw = document.getElementById('religion').value;
+      const religionOtro = document.getElementById('religionOtro').value.trim();
+
+      const freqIglesiaVal = freqIglesiaRadio ? freqIglesiaRadio.value : '';
+      const freqIglesiaOtro = document.getElementById('frecuenciaIglesiaOtro').value.trim();
+
+      return {
+        version: '1.4',
+        fechaEmision: new Date().toLocaleDateString('es-SV', { year: 'numeric', month: 'long', day: 'numeric' }),
+        seccion1_datosPersonales: {
+          nombres: document.getElementById('nombres').value.trim(),
+          apellidos: document.getElementById('apellidos').value.trim(),
+          nombreCompleto: [document.getElementById('nombres').value.trim(), document.getElementById('apellidos').value.trim()].filter(Boolean).join(' '),
+          fechaNacimiento: document.getElementById('fechaNacimiento').value,
+          edad: calculateAge(),
+          sexo: sexoRadio ? sexoRadio.value : '',
+          documentoIdentidad: document.getElementById('documentoIdentidad').value.trim(),
+          estadoCivilRaw,
+          estadoCivilOtro,
+          estadoCivil: combineOtro(estadoCivilRaw, estadoCivilOtro),
+          telefono: document.getElementById('telefono').value.trim(),
+          correo: document.getElementById('correo').value.trim(),
+          departamento: document.getElementById('departamento').value,
+          municipio: document.getElementById('municipio').value.trim(),
+          zonaResidenciaRaw: zonaRaw,
+          zonaResidenciaOtro: zonaOtro,
+          zonaResidencia: combineOtro(zonaRaw, zonaOtro),
+          direccion: document.getElementById('direccion').value.trim()
+        },
+        seccion2_datosAcademicos: {
+          institucion: document.getElementById('institucion').value.trim(),
+          carreraRaw,
+          carreraOtro,
+          carrera: combineOtro(carreraRaw, carreraOtro),
+          anioCicloSeccion: document.getElementById('anioCicloSeccion').value.trim(),
+          turnoRaw,
+          turnoOtro,
+          turno: combineOtro(turnoRaw, turnoOtro),
+          condicionAcademicaRaw: condAcadRaw,
+          condicionAcademicaOtro: condAcadOtro,
+          condicionAcademica: combineOtro(condAcadRaw, condAcadOtro),
+          proyeccionPlanGradoRaw: proyRaw,
+          proyeccionPlanGradoOtro: proyOtro,
+          proyeccionPlanGrado: combineOtro(proyRaw, proyOtro),
+          apoyoPlanGradoRaw: apoyoRaw,
+          apoyoPlanGradoOtro: apoyoOtro,
+          apoyoPlanGrado: combineOtro(apoyoRaw, apoyoOtro)
+        },
+        seccion3_informacionFamiliar: {
+          nombreResponsable: document.getElementById('nombreResponsable').value.trim(),
+          parentescoRaw,
+          parentescoOtro,
+          parentesco: combineOtro(parentescoRaw, parentescoOtro),
+          telefonoEmergencia: document.getElementById('telefonoEmergencia').value.trim(),
+          ocupacionResponsable: document.getElementById('ocupacionResponsable').value.trim(),
+          conQuienViveRaw: conQuienRaw,
+          conQuienViveOtro: conQuienOtro,
+          conQuienVive: combineOtro(conQuienRaw, conQuienOtro)
+        },
+        seccion4_viviendaServiciosSocioeconomico: {
+          tipoViviendaRaw: tipoVivRaw,
+          tipoViviendaOtro: tipoVivOtro,
+          tipoVivienda: combineOtro(tipoVivRaw, tipoVivOtro),
+          tenenciaViviendaRaw: tenenciaRaw,
+          tenenciaViviendaOtro: tenenciaOtro,
+          tenenciaVivienda: combineOtro(tenenciaRaw, tenenciaOtro),
+          materialParedesRaw: paredesRaw,
+          materialParedesOtro: paredesOtro,
+          materialParedes: combineOtro(paredesRaw, paredesOtro),
+          personasVivienda: document.getElementById('personasVivienda').value,
+          numeroDormitorios: document.getElementById('numeroDormitorios').value,
+          promedioDormitorio: calculateOvercrowding(),
+          servicioAguaRaw: aguaRaw,
+          servicioAguaOtro: aguaOtro,
+          servicioAgua: combineOtro(aguaRaw, aguaOtro),
+          frecuenciaAguaRaw: freqAguaRaw,
+          frecuenciaAguaOtro: freqAguaOtro,
+          frecuenciaAgua: combineOtro(freqAguaRaw, freqAguaOtro),
+          energiaElectricaRaw: energiaRaw,
+          energiaElectricaOtro: energiaOtro,
+          energiaElectrica: combineOtro(energiaRaw, energiaOtro),
+          servicioSanitarioRaw: sanitarioRaw,
+          servicioSanitarioOtro: sanitarioOtro,
+          servicioSanitario: combineOtro(sanitarioRaw, sanitarioOtro),
+          accesoInternetRaw: internetRaw,
+          accesoInternetOtro: internetOtro,
+          accesoInternet: combineOtro(internetRaw, internetOtro),
+          dispositivosRaw: dispRaw,
+          dispositivosOtro: dispOtro,
+          dispositivos: dispResolved.join(', '),
+          situacionLaboralRaw: laboralRaw,
+          situacionLaboralOtro: laboralOtro,
+          situacionLaboral: combineOtro(laboralRaw, laboralOtro),
+          sostenEconomicoRaw: sostenRaw,
+          sostenEconomicoOtro: sostenOtro,
+          sostenEconomico: combineOtro(sostenRaw, sostenOtro),
+          ingresoFamiliar: document.getElementById('ingresoFamiliar').value,
+          medioTransporteRaw: transpRaw,
+          medioTransporteOtro: transpOtro,
+          medioTransporte: combineOtro(transpRaw, transpOtro),
+          tiempoTraslado: document.getElementById('tiempoTraslado').value
+        },
+        seccion5_saludBienestar: {
+          grupoSanguineo: document.getElementById('grupoSanguineo').value,
+          enfermedadCronicaRaw: enfRaw,
+          enfermedadCronicaOtro: enfOtro,
+          enfermedadCronica: combineOtro(enfRaw, enfOtro),
+          alergiasRaw,
+          alergiasOtro,
+          alergias: combineOtro(alergiasRaw, alergiasOtro),
+          medicamentoContinuoRaw: medVal,
+          medicamentoContinuoDetalle: medDetalle,
+          medicamentoContinuo: combineOtro(medVal, medDetalle, ['Sí'])
+        },
+        seccion6_habilidadesMusicaDeporte: {
+          instrumentosRaw: instRaw,
+          instrumentosOtro: instOtro,
+          instrumentos: instResolved.join(', '),
+          deportesRaw: depRaw,
+          deportesOtro: depOtro,
+          deportes: depResolved.join(', ')
+        },
+        seccion7_afiliacionReligiosaComunitaria: {
+          religionRaw,
+          religionOtro,
+          religion: combineOtro(religionRaw, religionOtro),
+          nombreIglesia: document.getElementById('nombreIglesia').value.trim(),
+          frecuenciaIglesiaRaw: freqIglesiaVal,
+          frecuenciaIglesiaOtro: freqIglesiaOtro,
+          frecuenciaIglesia: combineOtro(freqIglesiaVal, freqIglesiaOtro),
+          actividadesIglesia: document.getElementById('actividadesIglesia').value.trim()
+        }
+      };
+    }
+
+    /**
+     * Actualiza la barra de progreso superior (0% a 100%)
+     */
+    function updateProgress() {
+      const tracked = document.querySelectorAll('[data-track="true"]');
+      const radioGroups = ['sexo', 'medicamentoContinuo', 'frecuenciaIglesia'];
+      const checkboxGroups = ['dispositivos', 'instrumentos', 'deportes'];
+
+      const total = tracked.length + radioGroups.length + checkboxGroups.length;
+      let filled = 0;
+
+      tracked.forEach(el => {
+        if (el.value && el.value.trim() !== '') filled++;
+      });
+
+      radioGroups.forEach(name => {
+        if (document.querySelector(`input[name="${name}"]:checked`)) filled++;
+      });
+
+      checkboxGroups.forEach(name => {
+        if (document.querySelectorAll(`input[name="${name}"]:checked`).length > 0) filled++;
+      });
+
+      const pct = Math.min(100, Math.round((filled / total) * 100));
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+      document.getElementById('progress-badge-desktop').textContent = `${pct}%`;
+      document.getElementById('progress-badge-mobile').textContent = `${pct}%`;
+    }
+
+    function escHTML(str) {
+      if (!str) return '<span class="text-slate-400 italic">No especificado</span>';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escPrint(str) {
+      if (!str) return '—';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    /**
+     * Abre el modal con el resumen consolidado de las 7 secciones
+     */
+    function openSummaryModal() {
+      const d = getFormData();
+      const s1 = d.seccion1_datosPersonales;
+      const s2 = d.seccion2_datosAcademicos;
+      const s3 = d.seccion3_informacionFamiliar;
+      const s4 = d.seccion4_viviendaServiciosSocioeconomico;
+      const s5 = d.seccion5_saludBienestar;
+      const s6 = d.seccion6_habilidadesMusicaDeporte;
+      const s7 = d.seccion7_afiliacionReligiosaComunitaria;
+
+      const body = document.getElementById('summary-modal-body');
+      body.innerHTML = `
+        <!-- Sección 1 -->
+        <div class="rounded-xl border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy text-white px-4 py-2 font-bold text-xs uppercase tracking-wider">1. Datos Personales y Demográficos</div>
+          <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-slate-50/60">
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Nombre Completo</span><span class="font-semibold text-slate-900">${escHTML(s1.nombreCompleto)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Documento (DUI / NIE / Carnet)</span><span>${escHTML(s1.documentoIdentidad)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Fecha de Nacimiento y Edad</span><span>${escHTML(s1.fechaNacimiento)} ${s1.edad ? `(${s1.edad})` : ''}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Sexo Biológico</span><span class="font-semibold">${escHTML(s1.sexo)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Estado Civil</span><span>${escHTML(s1.estadoCivil)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Teléfono / WhatsApp</span><span>${escHTML(s1.telefono)}</span></div>
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Correo Electrónico</span><span>${escHTML(s1.correo)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Departamento</span><span>${escHTML(s1.departamento)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Municipio / Distrito</span><span>${escHTML(s1.municipio)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Zona de Residencia</span><span>${escHTML(s1.zonaResidencia)}</span></div>
+            <div class="sm:col-span-2 lg:col-span-3"><span class="text-[11px] font-bold text-slate-500 block uppercase">Dirección Exacta</span><span>${escHTML(s1.direccion)}</span></div>
+          </div>
+        </div>
+
+        <!-- Sección 2 -->
+        <div class="rounded-xl border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy text-white px-4 py-2 font-bold text-xs uppercase tracking-wider">2. Datos Académicos y Proyección del Plan de Grado</div>
+          <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-slate-50/60">
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Institución Educativa / Facultad</span><span>${escHTML(s2.institucion)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Año / Ciclo / Sección</span><span>${escHTML(s2.anioCicloSeccion)}</span></div>
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Carrera / Bachillerato / Especialidad</span><span class="font-semibold">${escHTML(s2.carrera)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Turno y Condición</span><span>${escHTML([s2.turno, s2.condicionAcademica].filter(Boolean).join(' • '))}</span></div>
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Proyección Principal al Egresar</span><span class="font-semibold text-inst-cyanDark">${escHTML(s2.proyeccionPlanGrado)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Apoyo Requerido Plan de Grado</span><span>${escHTML(s2.apoyoPlanGrado)}</span></div>
+          </div>
+        </div>
+
+        <!-- Sección 3 -->
+        <div class="rounded-xl border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy text-white px-4 py-2 font-bold text-xs uppercase tracking-wider">3. Información Familiar y Contacto de Emergencia</div>
+          <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-slate-50/60">
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Responsable / Contacto de Emergencia</span><span class="font-semibold">${escHTML(s3.nombreResponsable)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Parentesco</span><span>${escHTML(s3.parentesco)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Teléfono de Emergencia</span><span class="font-bold text-rose-700">${escHTML(s3.telefonoEmergencia)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Ocupación del Responsable</span><span>${escHTML(s3.ocupacionResponsable)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Con quién vive actualmente</span><span>${escHTML(s3.conQuienVive)}</span></div>
+          </div>
+        </div>
+
+        <!-- Sección 4 -->
+        <div class="rounded-xl border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy text-white px-4 py-2 font-bold text-xs uppercase tracking-wider">4. Vivienda, Servicios Básicos y Condiciones Socioeconómicas</div>
+          <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-slate-50/60">
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Tipo de Vivienda</span><span>${escHTML(s4.tipoVivienda)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Tenencia</span><span>${escHTML(s4.tenenciaVivienda)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Material de Paredes</span><span>${escHTML(s4.materialParedes)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Personas / Dormitorios</span><span>${escHTML(s4.personasVivienda ? `${s4.personasVivienda} personas / ${s4.numeroDormitorios || '0'} dormitorios` : '')}</span></div>
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Promedio Personas por Dormitorio</span><span class="font-semibold">${escHTML(s4.promedioDormitorio)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Servicio de Agua Potable</span><span>${escHTML(s4.servicioAgua)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Frecuencia de Agua</span><span>${escHTML(s4.frecuenciaAgua)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Energía Eléctrica</span><span>${escHTML(s4.energiaElectrica)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Servicio Sanitario</span><span>${escHTML(s4.servicioSanitario)}</span></div>
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Acceso a Internet en el Hogar</span><span>${escHTML(s4.accesoInternet)}</span></div>
+            <div class="sm:col-span-2 lg:col-span-3"><span class="text-[11px] font-bold text-slate-500 block uppercase">Dispositivos Tecnológicos para Estudiar</span><span>${escHTML(s4.dispositivos)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Situación Laboral</span><span>${escHTML(s4.situacionLaboral)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Principal Sostén Económico</span><span>${escHTML(s4.sostenEconomico)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Ingreso Familiar Mensual</span><span>${escHTML(s4.ingresoFamiliar)}</span></div>
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Medio de Transporte Habitual</span><span>${escHTML(s4.medioTransporte)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Tiempo de Traslado (Ida)</span><span>${escHTML(s4.tiempoTraslado)}</span></div>
+          </div>
+        </div>
+
+        <!-- Sección 5 -->
+        <div class="rounded-xl border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy text-white px-4 py-2 font-bold text-xs uppercase tracking-wider">5. Salud Básica y Bienestar</div>
+          <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/60">
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Grupo Sanguíneo y Rh</span><span class="font-bold">${escHTML(s5.grupoSanguineo)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Enfermedad Crónica / Condición</span><span>${escHTML(s5.enfermedadCronica)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Alergias Conocidas</span><span>${escHTML(s5.alergias)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Medicamento de Uso Continuo</span><span>${escHTML(s5.medicamentoContinuo)}</span></div>
+          </div>
+        </div>
+
+        <!-- Sección 6 -->
+        <div class="rounded-xl border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy text-white px-4 py-2 font-bold text-xs uppercase tracking-wider">6. Habilidades, Música y Deporte</div>
+          <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/60">
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Habilidades Musicales / Instrumentos</span><span class="font-semibold">${escHTML(s6.instrumentos)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Deportes que Practica</span><span class="font-semibold">${escHTML(s6.deportes)}</span></div>
+          </div>
+        </div>
+
+        <!-- Sección 7 -->
+        <div class="rounded-xl border border-slate-200 overflow-hidden">
+          <div class="bg-inst-navy text-white px-4 py-2 font-bold text-xs uppercase tracking-wider">7. Afiliación Religiosa y Participación Comunitaria</div>
+          <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/60">
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Religión que Profesa</span><span class="font-semibold">${escHTML(s7.religion)}</span></div>
+            <div><span class="text-[11px] font-bold text-slate-500 block uppercase">Frecuencia de Asistencia</span><span>${escHTML(s7.frecuenciaIglesia)}</span></div>
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Nombre de la Iglesia o Congregación</span><span>${escHTML(s7.nombreIglesia)}</span></div>
+            <div class="sm:col-span-2"><span class="text-[11px] font-bold text-slate-500 block uppercase">Actividades en la Iglesia o Comunidad</span><span>${escHTML(s7.actividadesIglesia)}</span></div>
+          </div>
+        </div>
+      `;
+
+      renderPrintSheet();
+      document.getElementById('summary-modal').classList.remove('hidden');
+    }
+
+    function closeSummaryModal() {
+      document.getElementById('summary-modal').classList.add('hidden');
+    }
+
+    /**
+     * Genera el reporte limpio optimizado para impresión en hoja carta (US Letter)
+     */
+    function renderPrintSheet() {
+      const d = getFormData();
+      const s1 = d.seccion1_datosPersonales;
+      const s2 = d.seccion2_datosAcademicos;
+      const s3 = d.seccion3_informacionFamiliar;
+      const s4 = d.seccion4_viviendaServiciosSocioeconomico;
+      const s5 = d.seccion5_saludBienestar;
+      const s6 = d.seccion6_habilidadesMusicaDeporte;
+      const s7 = d.seccion7_afiliacionReligiosaComunitaria;
+
+      const container = document.getElementById('print-sheet-container');
+      container.innerHTML = `
+        <!-- Encabezado Institucional Carta -->
+        <div style="border-bottom: 2.5px solid #0f2942; padding-bottom: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <div style="font-size: 7.5pt; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em;">República de El Salvador • Registro Estudiantil</div>
+            <h1 style="font-size: 13.5pt; font-weight: 800; color: #0f2942; margin: 1px 0 0 0;">FICHA INTEGRAL DEL ESTUDIANTE - VERSIÓN 1.4</h1>
+            <div style="font-size: 8.5pt; color: #334155; font-weight: 600;">${escPrint(s2.institucion)}</div>
+          </div>
+          <div style="text-align: right; font-size: 8pt; color: #475569;">
+            <div style="font-weight: 700; color: #0f2942;">Expediente Oficial v1.4</div>
+            <div>Fecha: ${escPrint(d.fechaEmision)}</div>
+          </div>
+        </div>
+
+        <!-- 1. Datos Personales -->
+        <div class="print-card">
+          <div class="print-card-head">1. DATOS PERSONALES Y DEMOGRÁFICOS</div>
+          <div class="print-grid-3">
+            <div class="p-item span-2"><span class="p-lbl">Nombres y Apellidos Completos</span><span class="p-val">${escPrint(s1.nombreCompleto)}</span></div>
+            <div class="p-item"><span class="p-lbl">Documento (DUI / NIE / Carnet)</span><span class="p-val">${escPrint(s1.documentoIdentidad)}</span></div>
+            <div class="p-item"><span class="p-lbl">Fecha de Nacimiento / Edad</span><span class="p-val">${escPrint(s1.fechaNacimiento)} ${s1.edad ? `(${s1.edad})` : ''}</span></div>
+            <div class="p-item"><span class="p-lbl">Sexo Biológico</span><span class="p-val">${escPrint(s1.sexo)}</span></div>
+            <div class="p-item"><span class="p-lbl">Estado Civil</span><span class="p-val">${escPrint(s1.estadoCivil)}</span></div>
+            <div class="p-item"><span class="p-lbl">Teléfono / WhatsApp</span><span class="p-val">${escPrint(s1.telefono)}</span></div>
+            <div class="p-item span-2"><span class="p-lbl">Correo Electrónico</span><span class="p-val">${escPrint(s1.correo)}</span></div>
+            <div class="p-item"><span class="p-lbl">Departamento</span><span class="p-val">${escPrint(s1.departamento)}</span></div>
+            <div class="p-item"><span class="p-lbl">Municipio / Distrito</span><span class="p-val">${escPrint(s1.municipio)}</span></div>
+            <div class="p-item"><span class="p-lbl">Zona de Residencia</span><span class="p-val">${escPrint(s1.zonaResidencia)}</span></div>
+            <div class="p-item span-3"><span class="p-lbl">Dirección Exacta</span><span class="p-val">${escPrint(s1.direccion)}</span></div>
+          </div>
+        </div>
+
+        <!-- 2. Datos Académicos -->
+        <div class="print-card">
+          <div class="print-card-head">2. DATOS ACADÉMICOS Y PROYECCIÓN DEL PLAN DE GRADO</div>
+          <div class="print-grid-3">
+            <div class="p-item span-2"><span class="p-lbl">Carrera / Bachillerato Técnico / Especialidad</span><span class="p-val">${escPrint(s2.carrera)}</span></div>
+            <div class="p-item"><span class="p-lbl">Año / Ciclo / Sección</span><span class="p-val">${escPrint(s2.anioCicloSeccion)}</span></div>
+            <div class="p-item"><span class="p-lbl">Turno</span><span class="p-val">${escPrint(s2.turno)}</span></div>
+            <div class="p-item"><span class="p-lbl">Condición</span><span class="p-val">${escPrint(s2.condicionAcademica)}</span></div>
+            <div class="p-item"><span class="p-lbl">Apoyo Requerido Plan de Grado</span><span class="p-val">${escPrint(s2.apoyoPlanGrado)}</span></div>
+            <div class="p-item span-3"><span class="p-lbl">Proyección Principal al Egresar / Plan de Grado</span><span class="p-val">${escPrint(s2.proyeccionPlanGrado)}</span></div>
+          </div>
+        </div>
+
+        <!-- 3. Información Familiar -->
+        <div class="print-card">
+          <div class="print-card-head">3. INFORMACIÓN FAMILIAR Y CONTACTO DE EMERGENCIA</div>
+          <div class="print-grid-3">
+            <div class="p-item span-2"><span class="p-lbl">Responsable o Contacto de Emergencia</span><span class="p-val">${escPrint(s3.nombreResponsable)}</span></div>
+            <div class="p-item"><span class="p-lbl">Parentesco</span><span class="p-val">${escPrint(s3.parentesco)}</span></div>
+            <div class="p-item"><span class="p-lbl">Teléfono de Emergencia</span><span class="p-val">${escPrint(s3.telefonoEmergencia)}</span></div>
+            <div class="p-item"><span class="p-lbl">Ocupación del Responsable</span><span class="p-val">${escPrint(s3.ocupacionResponsable)}</span></div>
+            <div class="p-item"><span class="p-lbl">¿Con quién vive actualmente?</span><span class="p-val">${escPrint(s3.conQuienVive)}</span></div>
+          </div>
+        </div>
+
+        <!-- 4. Vivienda, Servicios Básicos y Socioeconómico -->
+        <div class="print-card">
+          <div class="print-card-head">4. VIVIENDA, SERVICIOS BÁSICOS Y CONDICIONES SOCIOECONÓMICAS (PLAN DE GRADO)</div>
+          <div class="print-grid-3">
+            <div class="p-item"><span class="p-lbl">Tipo de Vivienda</span><span class="p-val">${escPrint(s4.tipoVivienda)}</span></div>
+            <div class="p-item"><span class="p-lbl">Tenencia de la Vivienda</span><span class="p-val">${escPrint(s4.tenenciaVivienda)}</span></div>
+            <div class="p-item"><span class="p-lbl">Material de Paredes</span><span class="p-val">${escPrint(s4.materialParedes)}</span></div>
+            <div class="p-item"><span class="p-lbl">Personas en Vivienda</span><span class="p-val">${escPrint(s4.personasVivienda)}</span></div>
+            <div class="p-item"><span class="p-lbl">Número de Dormitorios</span><span class="p-val">${escPrint(s4.numeroDormitorios)}</span></div>
+            <div class="p-item"><span class="p-lbl">Promedio Personas / Dormitorio</span><span class="p-val">${escPrint(s4.promedioDormitorio)}</span></div>
+            <div class="p-item span-2"><span class="p-lbl">Servicio de Agua Potable</span><span class="p-val">${escPrint(s4.servicioAgua)}</span></div>
+            <div class="p-item"><span class="p-lbl">Frecuencia de Agua</span><span class="p-val">${escPrint(s4.frecuenciaAgua)}</span></div>
+            <div class="p-item"><span class="p-lbl">Energía Eléctrica</span><span class="p-val">${escPrint(s4.energiaElectrica)}</span></div>
+            <div class="p-item"><span class="p-lbl">Servicio Sanitario</span><span class="p-val">${escPrint(s4.servicioSanitario)}</span></div>
+            <div class="p-item"><span class="p-lbl">Acceso a Internet en el Hogar</span><span class="p-val">${escPrint(s4.accesoInternet)}</span></div>
+            <div class="p-item span-3"><span class="p-lbl">Dispositivos Tecnológicos Disponibles para Estudiar</span><span class="p-val">${escPrint(s4.dispositivos)}</span></div>
+            <div class="p-item"><span class="p-lbl">Situación Laboral</span><span class="p-val">${escPrint(s4.situacionLaboral)}</span></div>
+            <div class="p-item"><span class="p-lbl">Principal Sostén Económico</span><span class="p-val">${escPrint(s4.sostenEconomico)}</span></div>
+            <div class="p-item"><span class="p-lbl">Ingreso Familiar Mensual</span><span class="p-val">${escPrint(s4.ingresoFamiliar)}</span></div>
+            <div class="p-item span-2"><span class="p-lbl">Medio de Transporte Habitual</span><span class="p-val">${escPrint(s4.medioTransporte)}</span></div>
+            <div class="p-item"><span class="p-lbl">Tiempo de Traslado (Ida)</span><span class="p-val">${escPrint(s4.tiempoTraslado)}</span></div>
+          </div>
+        </div>
+
+        <!-- 5. Salud Básica y Bienestar -->
+        <div class="print-card">
+          <div class="print-card-head">5. SALUD BÁSICA Y BIENESTAR</div>
+          <div class="print-grid-2">
+            <div class="p-item"><span class="p-lbl">Grupo Sanguíneo y Rh</span><span class="p-val">${escPrint(s5.grupoSanguineo)}</span></div>
+            <div class="p-item"><span class="p-lbl">Enfermedad Crónica o Condición</span><span class="p-val">${escPrint(s5.enfermedadCronica)}</span></div>
+            <div class="p-item"><span class="p-lbl">Alergias Conocidas</span><span class="p-val">${escPrint(s5.alergias)}</span></div>
+            <div class="p-item"><span class="p-lbl">Medicamento de Uso Continuo</span><span class="p-val">${escPrint(s5.medicamentoContinuo)}</span></div>
+          </div>
+        </div>
+
+        <!-- 6. Habilidades, Música y Deporte -->
+        <div class="print-card">
+          <div class="print-card-head">6. HABILIDADES, MÚSICA Y DEPORTE</div>
+          <div class="print-grid-2">
+            <div class="p-item"><span class="p-lbl">Habilidades Musicales / Instrumentos</span><span class="p-val">${escPrint(s6.instrumentos)}</span></div>
+            <div class="p-item"><span class="p-lbl">Deportes que Practica</span><span class="p-val">${escPrint(s6.deportes)}</span></div>
+          </div>
+        </div>
+
+        <!-- 7. Afiliación Religiosa y Participación Comunitaria -->
+        <div class="print-card">
+          <div class="print-card-head">7. AFILIACIÓN RELIGIOSA Y PARTICIPACIÓN COMUNITARIA</div>
+          <div class="print-grid-2">
+            <div class="p-item"><span class="p-lbl">Religión que Profesa</span><span class="p-val">${escPrint(s7.religion)}</span></div>
+            <div class="p-item"><span class="p-lbl">Frecuencia de Asistencia</span><span class="p-val">${escPrint(s7.frecuenciaIglesia)}</span></div>
+            <div class="p-item span-2"><span class="p-lbl">Nombre de la Iglesia o Congregación</span><span class="p-val">${escPrint(s7.nombreIglesia)}</span></div>
+            <div class="p-item span-2"><span class="p-lbl">Actividades que Realiza en su Iglesia o Comunidad</span><span class="p-val">${escPrint(s7.actividadesIglesia)}</span></div>
+          </div>
+        </div>
+
+        <!-- Firmas institucionales al final -->
+        <div class="print-signatures">
+          <div>
+            <div style="border-top: 1px solid #0f172a; padding-top: 4px; font-weight: 700; font-size: 8.5pt;">Firma del Estudiante</div>
+            <div style="font-size: 7.5pt; color: #475569;">${escPrint(s1.nombreCompleto)}</div>
+          </div>
+          <div>
+            <div style="border-top: 1px solid #0f172a; padding-top: 4px; font-weight: 700; font-size: 8.5pt;">Firma / Sello del Docente</div>
+            <div style="font-size: 7.5pt; color: #475569;">Validación Institucional</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function printFormSheet() {
+      renderPrintSheet();
+      window.print();
+    }
+
+    function exportToJSON() {
+      const data = getFormData();
+      const rawName = data.seccion1_datosPersonales.nombreCompleto || 'Estudiante';
+      const safeName = rawName.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ _-]/g, '').trim().replace(/\s+/g, '_');
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Ficha_Estudiante_v1.4_${safeName}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Archivo JSON v1.4 exportado correctamente');
+    }
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(getFormData()));
+      } catch (e) {}
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const d = JSON.parse(raw);
+
+        const s1 = d.seccion1_datosPersonales || {};
+        document.getElementById('nombres').value = s1.nombres || '';
+        document.getElementById('apellidos').value = s1.apellidos || '';
+        document.getElementById('fechaNacimiento').value = s1.fechaNacimiento || '';
+        calculateAge();
+        if (s1.sexo) {
+          const r = document.querySelector(`input[name="sexo"][value="${s1.sexo}"]`);
+          if (r) r.checked = true;
+        }
+        document.getElementById('documentoIdentidad').value = s1.documentoIdentidad || '';
+        restoreSelectOtro('estadoCivil', s1.estadoCivilRaw, 'drawer-estadoCivil', 'estadoCivilOtro', s1.estadoCivilOtro, 'Otro');
+        document.getElementById('telefono').value = s1.telefono || '';
+        document.getElementById('correo').value = s1.correo || '';
+        document.getElementById('departamento').value = s1.departamento || '';
+        document.getElementById('municipio').value = s1.municipio || '';
+        restoreSelectOtro('zonaResidencia', s1.zonaResidenciaRaw, 'drawer-zonaResidencia', 'zonaResidenciaOtro', s1.zonaResidenciaOtro, 'Otro');
+        document.getElementById('direccion').value = s1.direccion || '';
+
+        const s2 = d.seccion2_datosAcademicos || {};
+        document.getElementById('institucion').value = s2.institucion || '';
+        restoreSelectOtro('carrera', s2.carreraRaw, 'drawer-carrera', 'carreraOtro', s2.carreraOtro, 'Otro');
+        document.getElementById('anioCicloSeccion').value = s2.anioCicloSeccion || '';
+        restoreSelectOtro('turno', s2.turnoRaw, 'drawer-turno', 'turnoOtro', s2.turnoOtro, 'Otro');
+        restoreSelectOtro('condicionAcademica', s2.condicionAcademicaRaw, 'drawer-condicionAcademica', 'condicionAcademicaOtro', s2.condicionAcademicaOtro, 'Otro');
+        restoreSelectOtro('proyeccionPlanGrado', s2.proyeccionPlanGradoRaw, 'drawer-proyeccionPlanGrado', 'proyeccionPlanGradoOtro', s2.proyeccionPlanGradoOtro, 'Otro');
+        restoreSelectOtro('apoyoPlanGrado', s2.apoyoPlanGradoRaw, 'drawer-apoyoPlanGrado', 'apoyoPlanGradoOtro', s2.apoyoPlanGradoOtro, 'Otro');
+
+        const s3 = d.seccion3_informacionFamiliar || {};
+        document.getElementById('nombreResponsable').value = s3.nombreResponsable || '';
+        restoreSelectOtro('parentesco', s3.parentescoRaw, 'drawer-parentesco', 'parentescoOtro', s3.parentescoOtro, 'Otro');
+        document.getElementById('telefonoEmergencia').value = s3.telefonoEmergencia || '';
+        document.getElementById('ocupacionResponsable').value = s3.ocupacionResponsable || '';
+        restoreSelectOtro('conQuienVive', s3.conQuienViveRaw, 'drawer-conQuienVive', 'conQuienViveOtro', s3.conQuienViveOtro, 'Otro');
+
+        const s4 = d.seccion4_viviendaServiciosSocioeconomico || {};
+        restoreSelectOtro('tipoVivienda', s4.tipoViviendaRaw, 'drawer-tipoVivienda', 'tipoViviendaOtro', s4.tipoViviendaOtro, 'Otro');
+        restoreSelectOtro('tenenciaVivienda', s4.tenenciaViviendaRaw, 'drawer-tenenciaVivienda', 'tenenciaViviendaOtro', s4.tenenciaViviendaOtro, 'Otro');
+        restoreSelectOtro('materialParedes', s4.materialParedesRaw, 'drawer-materialParedes', 'materialParedesOtro', s4.materialParedesOtro, 'Otro');
+        document.getElementById('personasVivienda').value = s4.personasVivienda || '';
+        document.getElementById('numeroDormitorios').value = s4.numeroDormitorios || '';
+        calculateOvercrowding();
+        restoreSelectOtro('servicioAgua', s4.servicioAguaRaw, 'drawer-servicioAgua', 'servicioAguaOtro', s4.servicioAguaOtro, 'Otro');
+        restoreSelectOtro('frecuenciaAgua', s4.frecuenciaAguaRaw, 'drawer-frecuenciaAgua', 'frecuenciaAguaOtro', s4.frecuenciaAguaOtro, 'Otro');
+        restoreSelectOtro('energiaElectrica', s4.energiaElectricaRaw, 'drawer-energiaElectrica', 'energiaElectricaOtro', s4.energiaElectricaOtro, 'Otro');
+        restoreSelectOtro('servicioSanitario', s4.servicioSanitarioRaw, 'drawer-servicioSanitario', 'servicioSanitarioOtro', s4.servicioSanitarioOtro, 'Otro');
+        restoreSelectOtro('accesoInternet', s4.accesoInternetRaw, 'drawer-accesoInternet', 'accesoInternetOtro', s4.accesoInternetOtro, 'Otro');
+        restoreCheckboxes('dispositivos', s4.dispositivosRaw, 'drawer-dispositivos', 'dispositivosOtro', s4.dispositivosOtro);
+        restoreSelectOtro('situacionLaboral', s4.situacionLaboralRaw, 'drawer-situacionLaboral', 'situacionLaboralOtro', s4.situacionLaboralOtro, 'Otro');
+        restoreSelectOtro('sostenEconomico', s4.sostenEconomicoRaw, 'drawer-sostenEconomico', 'sostenEconomicoOtro', s4.sostenEconomicoOtro, 'Otro');
+        document.getElementById('ingresoFamiliar').value = s4.ingresoFamiliar || '';
+        restoreSelectOtro('medioTransporte', s4.medioTransporteRaw, 'drawer-medioTransporte', 'medioTransporteOtro', s4.medioTransporteOtro, 'Otro');
+        document.getElementById('tiempoTraslado').value = s4.tiempoTraslado || '';
+
+        const s5 = d.seccion5_saludBienestar || {};
+        document.getElementById('grupoSanguineo').value = s5.grupoSanguineo || '';
+        restoreSelectOtro('enfermedadCronica', s5.enfermedadCronicaRaw, 'drawer-enfermedadCronica', 'enfermedadCronicaOtro', s5.enfermedadCronicaOtro, 'Otra');
+        restoreSelectOtro('alergias', s5.alergiasRaw, 'drawer-alergias', 'alergiasOtro', s5.alergiasOtro, 'Otra');
+        if (s5.medicamentoContinuoRaw) {
+          const mr = document.querySelector(`input[name="medicamentoContinuo"][value="${s5.medicamentoContinuoRaw}"]`);
+          if (mr) {
+            mr.checked = true;
+            if (s5.medicamentoContinuoRaw === 'Sí') {
+              toggleOtroDrawer('drawer-medicamentoContinuo', 'medicamentoContinuoDetalle', true, false);
+              document.getElementById('medicamentoContinuoDetalle').value = s5.medicamentoContinuoDetalle || '';
+            }
+          }
+        }
+
+        const s6 = d.seccion6_habilidadesMusicaDeporte || {};
+        restoreCheckboxes('instrumentos', s6.instrumentosRaw, 'drawer-instrumentos', 'instrumentosOtro', s6.instrumentosOtro);
+        restoreCheckboxes('deportes', s6.deportesRaw, 'drawer-deportes', 'deportesOtro', s6.deportesOtro);
+
+        const s7 = d.seccion7_afiliacionReligiosaComunitaria || {};
+        restoreSelectOtro('religion', s7.religionRaw, 'drawer-religion', 'religionOtro', s7.religionOtro, 'Otra');
+        document.getElementById('nombreIglesia').value = s7.nombreIglesia || '';
+        if (s7.frecuenciaIglesiaRaw) {
+          const fr = document.querySelector(`input[name="frecuenciaIglesia"][value="${s7.frecuenciaIglesiaRaw}"]`);
+          if (fr) {
+            fr.checked = true;
+            if (s7.frecuenciaIglesiaRaw === 'Otra frecuencia') {
+              toggleOtroDrawer('drawer-frecuenciaIglesia', 'frecuenciaIglesiaOtro', true, false);
+              document.getElementById('frecuenciaIglesiaOtro').value = s7.frecuenciaIglesiaOtro || '';
+            }
+          }
+        }
+        document.getElementById('actividadesIglesia').value = s7.actividadesIglesia || '';
+      } catch (e) {}
+    }
+
+    function restoreSelectOtro(selectId, rawVal, drawerId, inputId, otroVal, matchWord) {
+      const sel = document.getElementById(selectId);
+      if (!sel) return;
+      sel.value = rawVal || '';
+      if (rawVal === matchWord) {
+        toggleOtroDrawer(drawerId, inputId, true, false);
+        const inp = document.getElementById(inputId);
+        if (inp) inp.value = otroVal || '';
+      }
+    }
+
+    function restoreCheckboxes(groupName, rawList, drawerId, inputId, otroVal) {
+      if (!Array.isArray(rawList)) return;
+      document.querySelectorAll(`input[name="${groupName}"]`).forEach(cb => {
+        cb.checked = rawList.includes(cb.value);
+      });
+      if (rawList.includes('Otro')) {
+        toggleOtroDrawer(drawerId, inputId, true, false);
+        const inp = document.getElementById(inputId);
+        if (inp) inp.value = otroVal || '';
+      }
+    }
+
+    function openResetModal() {
+      document.getElementById('reset-modal').classList.remove('hidden');
+    }
+
+    function closeResetModal() {
+      document.getElementById('reset-modal').classList.add('hidden');
+    }
+
+    function confirmResetForm() {
+      document.getElementById('ficha-form').reset();
+      document.getElementById('edadDisplay').textContent = '— años';
+      document.getElementById('promedioDormitorioDisplay').textContent = '—';
+      document.querySelectorAll('.otro-drawer').forEach(drawer => drawer.classList.remove('open'));
+      localStorage.removeItem(STORAGE_KEY);
+      updateProgress();
+      renderPrintSheet();
+      closeResetModal();
+      showToast('Formulario limpiado correctamente');
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'bg-inst-navy text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg border border-sky-400/40 flex items-center gap-2 transition-opacity duration-300';
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-sky-400"></span><span>${msg}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 2600);
+    }
+  </script>
+</body>
+</html>
